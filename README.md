@@ -23,4 +23,4 @@
 4. Run development server: `npm run dev`
 
 ## 👤 Developer 
--  Jeff  (project founder)# YGN-TV-SRT-FILE-EDITOR-
+-  Jeff  ##(project founder)
