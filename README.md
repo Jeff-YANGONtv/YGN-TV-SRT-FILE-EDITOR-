@@ -1,8 +1,8 @@
-# 🎬 Yangon TV - Production Lab (v1.0)
+#  Yangon TV - Production Lab (v1.0)
 
  Premium Subtitle Editing & QC Management System 
 
-## 🌟 Key Features
+##  Key Features
 - **Premium UI:** Glassmorphism Effect များ၊ Electric Blue Glow နှင့် Dark Mode Toggle ပါဝင်သည်။
 - **Telegram Storage:** Telegram Channel ကို Unlimited Storage Database အဖြစ် အသုံးပြုထားသည်။
 - **Advanced Editor:** Waveform Audio Scanning၊ Local Video Preview နှင့် Blank Line Clearing tools များ ပါဝင်သည်။
@@ -23,4 +23,4 @@
 4. Run development server: `npm run dev`
 
 ## 👤 Developer 
--  Jeff  ##(project founder)
+-  **Jeff**  **(project founder)**
