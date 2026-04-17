@@ -1,6 +1,81 @@
-import { redirect } from 'next/navigation';
+"use client";
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
+import { Loader2, MonitorPlay } from 'lucide-react';
 
-export default function Home() {
-  // Domain ထဲဝင်တာနဲ့ Login page ဆီကို တန်းပို့ပေးမှာပါ
-  redirect('/login');
+export default function Login() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({ email: '', password: '' });
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({
+      email: formData.email,
+      password: formData.password,
+    });
+
+    if (error) {
+      alert("အီးမေးလ် သို့မဟုတ် စကားဝှက် မှားယွင်းနေပါသည်။");
+      setLoading(false);
+      return;
+    }
+    router.push('/dashboard');
+  };
+
+  return (
+    <div className="min-h-screen bg-[#f0f2f5] dark:bg-[#0b0d11] flex flex-col items-center justify-center p-4">
+      <div className="w-full max-w-[400px] space-y-6">
+        {/* Brand Logo */}
+        <div className="text-center mb-8">
+          <div className="inline-flex p-4 bg-blue-600 rounded-2xl shadow-lg shadow-blue-500/30 mb-4">
+            <MonitorPlay size={40} className="text-white" />
+          </div>
+          <h1 className="text-3xl font-black text-blue-600 tracking-tighter">Yangon TV</h1>
+          <p className="text-slate-500 font-medium mt-2">Production Lab Terminal</p>
+        </div>
+
+        {/* Login Card */}
+        <div className="bg-white dark:bg-[#1a1c23] p-6 rounded-2xl shadow-[0_2px_15px_rgba(0,0,0,0.1)] border border-white/5">
+          <form onSubmit={handleLogin} className="space-y-4">
+            <input 
+              required
+              type="email" 
+              placeholder="Email address"
+              className="w-full px-4 py-3.5 bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-lg"
+              onChange={(e) => setFormData({...formData, email: e.target.value})}
+            />
+            <input 
+              required
+              type="password" 
+              placeholder="Password"
+              className="w-full px-4 py-3.5 bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-lg"
+              onChange={(e) => setFormData({...formData, password: e.target.value})}
+            />
+            <button 
+              disabled={loading}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl text-xl shadow-md transition-all active:scale-[0.98] flex items-center justify-center shadow-blue-500/20"
+            >
+              {loading ? <Loader2 className="animate-spin" size={24} /> : "Log In"}
+            </button>
+          </form>
+
+          <div className="mt-6 pt-6 border-t border-gray-100 dark:border-white/5 text-center">
+            <button 
+              onClick={() => router.push('/signup')}
+              className="bg-[#42b72a] hover:bg-[#36a420] text-white font-bold py-3 px-6 rounded-xl transition-all active:scale-[0.98]"
+            >
+              Create New Account
+            </button>
+          </div>
+        </div>
+        
+        <p className="text-center text-sm text-slate-500">
+          <b>Yangon TV</b> for Independent Editors
+        </p>
+      </div>
+    </div>
+  );
 }
