@@ -3,52 +3,21 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  --background-rgb: 240, 242, 245;
+  --foreground-rgb: 28, 30, 33;
 }
 
 [class~="dark"] {
+  --background-rgb: 11, 13, 17;
   --foreground-rgb: 255, 255, 255;
-  --background-start-rgb: 11, 13, 17;
-  --background-end-rgb: 15, 17, 21;
 }
 
 body {
   color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
-  min-height: 100vh; /* ဒီနေရာမှာ အရင်က min-h-screen လို့ မှားရေးမိတာပါ */
+  background-color: rgb(var(--background-rgb));
+  min-height: 100vh;
 }
 
-/* Glassmorphism Utility */
 .glass {
-  @apply backdrop-blur-xl bg-white/5 border border-white/10 shadow-2xl;
-}
-
-/* Electric Blue Glow */
-.glow-blue {
-  box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
-}
-
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(59, 130, 246, 0.3);
-  border-radius: 999px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(59, 130, 246, 0.5);
+  @apply backdrop-blur-xl bg-white/70 dark:bg-white/5 border border-white/20 dark:border-white/10 shadow-xl;
 }
