@@ -6,7 +6,7 @@ import { SplashScreen } from '@/components/ui/SplashScreen';
 /**
  * Yangon TV - Production Lab
  * Main Landing Page Redirect Logic
- * Created by: Zin Ko Ko Lwin
+ * Created by: YANGON TV 
  */
 
 export default function Home() {
