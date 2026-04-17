@@ -2,22 +2,95 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Color Variables - Facebook Style for Light & Premium Dark */
 :root {
-  --background-rgb: 240, 242, 245;
-  --foreground-rgb: 28, 30, 33;
+  --background-rgb: 240, 242, 245; /* Facebook Light Gray Background */
+  --foreground-rgb: 28, 30, 33;    /* Facebook Dark Gray Text */
+  --card-rgb: 255, 255, 255;
+  --border-rgb: 221, 224, 228;
 }
 
 [class~="dark"] {
-  --background-rgb: 11, 13, 17;
+  --background-rgb: 11, 13, 17;   /* Deep Dark Background */
   --foreground-rgb: 255, 255, 255;
+  --card-rgb: 26, 28, 35;
+  --border-rgb: 38, 42, 51;
 }
 
+/* Global Styles */
 body {
   color: rgb(var(--foreground-rgb));
   background-color: rgb(var(--background-rgb));
   min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+/* Premium Glassmorphism & Utilities 
+   အယ်ဒီတာထဲမှာ သုံးဖို့အတွက် Utility Class များ
+*/
 
 .glass {
   @apply backdrop-blur-xl bg-white/70 dark:bg-white/5 border border-white/20 dark:border-white/10 shadow-xl;
+}
+
+.glass-dark {
+  @apply backdrop-blur-2xl bg-black/40 border border-white/5 shadow-2xl;
+}
+
+/* Electric Glow Effects */
+.glow-blue {
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+}
+
+.glow-text-blue {
+  text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+}
+
+/* Custom Scrollbar - Modern & Slim */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.3);
+  border-radius: 999px;
+  transition: all 0.3s;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 130, 246, 0.5);
+}
+
+/* Waveform Canvas Styling */
+canvas {
+  filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.3));
+}
+
+/* Animation for Loading and Transitions */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* Login Card Hover Effect */
+.login-card-shadow {
+  shadow-[0_2px_12px_rgba(0,0,0,0.1)];
+}
+
+/* Selection Color */
+::selection {
+  background-color: rgba(59, 130, 246, 0.3);
+  color: inherit;
 }
