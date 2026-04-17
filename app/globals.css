@@ -2,37 +2,54 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: 11, 13, 17;
-  --foreground: 255, 255, 255;
+@layer base {
+  body {
+    @apply bg-[#0b0d11] text-white font-sans antialiased overflow-x-hidden;
+  }
 }
 
-body {
-  background-color: #0b0d11 !important;
-  color: white !important;
-  margin: 0;
-  padding: 0;
+@layer components {
+  /* Premium Glassmorphism Effect */
+  .glass {
+    @apply bg-white/[0.03] backdrop-blur-xl border border-white/[0.08];
+  }
+  
+  /* Form Inputs (Facebook Style + Premium Dark) */
+  .premium-input {
+    @apply bg-white/5 border border-white/10 rounded-2xl px-5 py-4 w-full outline-none text-sm transition-all duration-300;
+  }
+  .premium-input:focus {
+    @apply border-blue-500 bg-blue-500/5;
+  }
+  
+  /* Tabs */
+  .active-tab {
+    @apply border-b-[3px] border-blue-500 text-white font-black;
+  }
 }
 
-/* Premium Glass UI */
-.glass-panel {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-thumb {
+  background: #3b82f6;
+  border-radius: 10px;
 }
 
-/* Facebook Style Input */
-.fb-input {
-  @apply w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-lg text-white;
+/* Page Transitions & Animations */
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
 }
 
-/* Button Styles */
-.btn-primary {
-  @apply w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl text-lg shadow-lg shadow-blue-500/20 active:scale-[0.98] transition-all;
-}
-
-.btn-secondary {
-  @apply bg-[#42b72a] hover:bg-[#36a420] text-white font-bold py-3 px-8 rounded-xl transition-all active:scale-[0.98];
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
