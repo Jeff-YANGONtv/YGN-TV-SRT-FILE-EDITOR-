@@ -22,7 +22,7 @@ body {
       rgb(var(--background-end-rgb))
     )
     rgb(var(--background-start-rgb));
-  min-h-screen;
+  min-height: 100vh; /* ဒီနေရာမှာ အရင်က min-h-screen လို့ မှားရေးမိတာပါ */
 }
 
 /* Glassmorphism Utility */
@@ -35,15 +35,20 @@ body {
   box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
 }
 
-/* Custom Scrollbar for Premium Look */
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-transparent;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-blue-500/30 rounded-full hover:bg-blue-500/50 transition-colors;
+  background: rgba(59, 130, 246, 0.3);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 130, 246, 0.5);
 }
