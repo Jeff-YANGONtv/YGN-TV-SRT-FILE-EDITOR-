@@ -8,29 +8,17 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Yangon TV - Production Lab",
-  description: "Independent Media Production Terminal",
+  description: "By YGNTV TECH",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      {/* ပတ်ဝန်းကျင်တစ်ခုလုံးကို Dark Mode Fix လုပ်ထားပါတယ် */}
+    <html lang="en" suppressHydrationWarning className="dark">
       <body className={`${inter.className} bg-[#0b0d11] text-white antialiased`}>
-        <ThemeProvider 
-          attribute="class" 
-          defaultTheme="dark" 
-          enableSystem={false}
-        >
-          {/* Main Content Area */}
-          <main className="min-h-screen pb-20 md:pb-0">
+        <ThemeProvider attribute="class" defaultTheme="dark" forcedTheme="dark">
+          <main className="min-h-screen relative overflow-x-hidden">
             {children}
           </main>
-
-          {/* Mobile Bottom Navigation */}
           <BottomNav />
         </ThemeProvider>
       </body>
