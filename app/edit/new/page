@@ -1,122 +1,152 @@
 "use client";
-import React, { useState, useRef } from 'react';
-import { Upload, FileText, Save, Plus, Trash2, Send, Clock, Eraser } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import React, { useState } from 'react';
+import Sidebar from '@/components/ui/Sidebar';
+import { Menu, Video, FileUp, Eraser, Clock, X, Trash2 } from 'lucide-react';
 
-export default function FullPowerEditor() {
-  const [subtitles, setSubtitles] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
+export default function SRTEditorMaster() {
+  // States
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const [metaType, setMetaType] = useState<'movie' | 'series'>('movie');
+  
+  // နမူနာ Subtitle အချက်အလက် (နောက်ပိုင်း SRT ဖတ်တဲ့အခါ ဒီ State ထဲ ဝင်လာပါမယ်)
+  const [subtitles, setSubtitles] = useState([
+    { id: 1, time: "00:00:01,240 --> 00:00:04,500", text: "မင်္ဂလာပါ၊ Yangon TV မှ ကြိုဆိုပါတယ်။" }
+  ]);
 
-  // ၁။ SRT Upload & Parsing (Blank lines တွေကိုပါ တစ်ခါတည်း ရှင်းပေးမယ်)
-  const handleSRTUpload = (e: any) => {
-    const file = e.target.files[0];
-    const reader = new FileReader();
-    reader.onload = (res: any) => {
-      const text = res.target.result;
-      const blocks = text.split(/\n\s*\n/).filter((b: string) => b.trim() !== ""); // Blank lines ရှင်းထုတ်ခြင်း
-      const parsed = blocks.map((block: string, i: number) => {
-        const lines = block.split('\n').filter(l => l.trim() !== "");
-        return {
-          id: i,
-          index: lines[0],
-          time: lines[1] || "00:00:00,000 --> 00:00:05,000",
-          text: lines.slice(2).join(' ')
-        };
-      });
-      setSubtitles(parsed);
-    };
-    reader.readAsText(file);
-  };
-
-  // ၂။ Save to Dashboard & Telegram
-  const handleSaveAndSync = async () => {
-    setLoading(true);
-    try {
-      // SRT ပြန်ထုတ်တဲ့ Logic
-      const finalSRT = subtitles.map(s => `${s.index}\n${s.time}\n${s.text}\n`).join('\n');
-      
-      // Database (Dashboard) သို့ သိမ်းခြင်း
-      const { error: dbError } = await supabase.from('projects').insert([{ 
-        content: finalSRT,
-        status: 'completed',
-        created_at: new Date()
-      }]);
-
-      // Telegram Bot သို့ ပို့ခြင်း (API Call)
-      await fetch('/api/telegram-sync', {
-        method: 'POST',
-        body: JSON.stringify({ srt: finalSRT })
-      });
-
-      alert("Dashboard နှင့် Telegram သို့ သိမ်းဆည်းပြီးပါပြီ!");
-    } catch (err) {
-      alert("Error occurred while syncing!");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Sidebar အဖွင့်အပိတ်လုပ်တဲ့ Function
+  const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
 
   return (
-    <div className="p-4 max-w-5xl mx-auto space-y-6 pb-28 text-white">
-      <div className="flex justify-between items-center border-b border-white/10 pb-4">
-        <h1 className="text-2xl font-black text-blue-500 italic">SRT LAB PRO</h1>
-        <button onClick={handleSaveAndSync} disabled={loading} className="bg-blue-600 px-6 py-2.5 rounded-2xl font-bold flex items-center gap-2 hover:bg-blue-700 transition shadow-lg shadow-blue-500/20">
-          {loading ? "SYNCING..." : <><Send size={18} /> SAVE & SYNC</>}
+    <div className="min-h-screen flex flex-col">
+      {/* Sidebar Component ကို လှမ်းခေါ်ထားခြင်း */}
+      <Sidebar isOpen={isSidebarOpen} toggleMenu={toggleSidebar} />
+
+      {/* Header Panel (Mobile & Desktop) */}
+      <header className="p-5 flex justify-between items-center border-b border-white/5 sticky top-0 bg-[#0b0d11]/90 backdrop-blur-md z-40">
+        <button onClick={toggleSidebar} className="w-10 h-10 flex items-center justify-center rounded-xl glass active:scale-90 transition">
+          <Menu className="text-slate-300" size={24} />
         </button>
-      </div>
 
-      <div className="grid grid-cols-1 gap-6">
-        {/* Upload & Tools Area */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="glass p-6 rounded-3xl border-2 border-dashed border-white/5 text-center relative hover:bg-white/5 transition-all">
-            <Upload size={32} className="mx-auto mb-2 text-blue-500" />
-            <h3 className="font-bold">UPLOAD SRT</h3>
-            <input type="file" accept=".srt" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleSRTUpload} />
-          </div>
-          <div className="glass p-6 rounded-3xl flex items-center justify-around">
-            <button onClick={() => setSubtitles([])} className="flex flex-col items-center gap-1 text-red-400">
-              <Eraser size={24} /> <span className="text-[10px] font-bold">CLEAR ALL</span>
-            </button>
-            <button onClick={() => setSubtitles([{id: Date.now(), index: subtitles.length + 1, time: '00:00:00,000 --> 00:00:05,000', text: ''}, ...subtitles])} className="flex flex-col items-center gap-1 text-green-400">
-              <Plus size={24} /> <span className="text-[10px] font-bold">ADD NEW</span>
-            </button>
-          </div>
+        <div className="text-center">
+          <h1 className="text-base font-black italic tracking-tighter leading-none uppercase">
+            Yangon TV <span className="text-blue-500">Lab</span>
+          </h1>
+          <p className="text-[8px] font-bold text-slate-500 tracking-[0.1em] uppercase mt-1">
+            Subtitle File Editor Group
+          </p>
         </div>
 
-        {/* Edit List Area */}
-        <div className="glass rounded-3xl border border-white/10 overflow-hidden flex flex-col h-[650px]">
-          <div className="bg-white/5 p-4 border-b border-white/10 font-bold text-blue-400 flex justify-between">
-            <span>SUBTITLE EDITOR</span>
-            <span className="text-slate-500 text-xs">{subtitles.length} Lines</span>
+        <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-blue-600/40 p-0.5">
+          <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Zin" alt="Profile" className="w-full h-full rounded-full" />
+        </div>
+      </header>
+
+      {/* Main Editor Layout */}
+      <main className="max-w-xl mx-auto w-full p-4 space-y-6 flex-1 animate-fade-in pb-10">
+        
+        {/* 1. Video Preview Area */}
+        <div className="glass aspect-video rounded-[2rem] flex flex-col items-center justify-center relative overflow-hidden group border-2 border-dashed border-white/10 hover:border-blue-500/40 transition">
+          <div className="bg-blue-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center mb-3 shadow-xl shadow-blue-600/20 group-hover:scale-110 transition">
+            <Video size={24} />
           </div>
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
-            {subtitles.map((sub, i) => (
-              <div key={sub.id} className="bg-white/5 p-4 rounded-2xl border border-white/5 space-y-3 hover:border-blue-500/30 transition-all">
-                <div className="flex items-center gap-3">
-                  <div className="bg-blue-500/10 text-blue-500 p-2 rounded-lg"><Clock size={16} /></div>
-                  <input 
-                    className="bg-transparent text-sm font-mono text-slate-300 flex-1 outline-none border-b border-white/5 focus:border-blue-500 transition-all" 
-                    value={sub.time} 
-                    onChange={(e) => {
-                      const ns = [...subtitles]; ns[i].time = e.target.value; setSubtitles(ns);
-                    }}
-                  />
-                  <button onClick={() => setSubtitles(subtitles.filter(s => s.id !== sub.id))} className="text-red-500/50 hover:text-red-500"><Trash2 size={18} /></button>
-                </div>
-                <textarea 
-                  className="bg-transparent w-full text-lg font-medium outline-none resize-none px-1"
-                  rows={2}
-                  value={sub.text}
-                  placeholder="စာသားပြင်ရန်..."
-                  onChange={(e) => {
-                    const ns = [...subtitles]; ns[i].text = e.target.value; setSubtitles(ns);
-                  }}
-                />
+          <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Tap to load Preview Video</p>
+          <input type="file" accept="video/*" className="absolute inset-0 opacity-0 cursor-pointer" />
+        </div>
+
+        {/* 2. Movie & Series Meta Data Toggle */}
+        <div className="space-y-4">
+          <div className="flex p-1 bg-white/5 rounded-[1.5rem] border border-white/5">
+            <button 
+              onClick={() => setMetaType('movie')} 
+              className={`flex-1 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all ${metaType === 'movie' ? 'active-btn bg-blue-600 shadow-lg shadow-blue-500/20' : 'text-slate-500'}`}
+            >
+              Movie
+            </button>
+            <button 
+              onClick={() => setMetaType('series')} 
+              className={`flex-1 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all ${metaType === 'series' ? 'active-btn bg-blue-600 shadow-lg shadow-blue-500/20' : 'text-slate-500'}`}
+            >
+              Series
+            </button>
+          </div>
+
+          {/* Movie Details Input */}
+          {metaType === 'movie' && (
+            <div className="p-5 glass rounded-[2rem] space-y-4 animate-fade-in">
+              <input type="text" placeholder="Enter Movie Title..." className="premium-input" />
+              <button className="w-full py-4 bg-blue-600 hover:bg-blue-700 rounded-[1.2rem] font-black text-xs uppercase tracking-widest shadow-lg shadow-blue-600/20 active:scale-95 transition">
+                Save Title
+              </button>
+            </div>
+          )}
+
+          {/* Series Details Input */}
+          {metaType === 'series' && (
+            <div className="p-5 glass rounded-[2rem] space-y-4 animate-fade-in">
+              <input type="text" placeholder="Enter Series Title..." className="premium-input" />
+              <div className="grid grid-cols-2 gap-3">
+                <input type="number" placeholder="Season" className="premium-input text-center" />
+                <input type="number" placeholder="Episode" className="premium-input text-center" />
               </div>
-            ))}
+              <button className="w-full py-4 bg-blue-600 hover:bg-blue-700 rounded-[1.2rem] font-black text-xs uppercase tracking-widest shadow-lg shadow-blue-600/20 active:scale-95 transition">
+                Save Series Data
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* 3. SRT Upload & Tools */}
+        <div className="space-y-4">
+          <div className="relative py-12 glass rounded-[2.5rem] border-2 border-dashed border-blue-500/10 text-center hover:bg-blue-600/5 transition cursor-pointer">
+            <FileUp className="mx-auto text-blue-500 mb-3" size={40} />
+            <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">Upload SRT File to Edit</p>
+            <input type="file" accept=".srt" className="absolute inset-0 opacity-0 cursor-pointer" />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <button className="py-4 glass rounded-2xl text-[9px] font-black text-red-500 uppercase flex items-center justify-center gap-2 border border-red-500/10 active:scale-95 transition hover:bg-red-500/5">
+              <Eraser size={16} /> ALL BLANK DELETE
+            </button>
+            <button className="py-4 glass rounded-2xl text-[9px] font-black text-blue-400 uppercase flex items-center justify-center gap-2 border border-blue-500/10 active:scale-95 transition hover:bg-blue-500/5">
+              <Clock size={16} /> SHIFT OFFSET
+            </button>
           </div>
         </div>
-      </div>
+
+        {/* 4. Subtitle Editor List Area */}
+        <div className="space-y-4">
+          {subtitles.map((sub, index) => (
+            <div key={sub.id} className="bg-white/[0.03] p-6 rounded-[2.2rem] border border-white/5 relative group transition-colors hover:border-blue-500/30">
+              <div className="flex justify-between items-center mb-4">
+                <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Line #{index + 1}</span>
+                <button 
+                  onClick={() => setSubtitles(subtitles.filter(s => s.id !== sub.id))}
+                  className="w-8 h-8 rounded-full bg-red-500/10 text-red-500 text-xs transition flex items-center justify-center hover:bg-red-500 hover:text-white"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+              <input 
+                type="text" 
+                defaultValue={sub.time} 
+                className="bg-transparent text-[11px] font-mono text-blue-500 mb-3 block outline-none border-b border-white/5 focus:border-blue-500 w-full pb-1 transition-colors" 
+              />
+              <textarea 
+                defaultValue={sub.text}
+                className="bg-transparent w-full text-base font-medium outline-none resize-none leading-relaxed text-slate-200" 
+                rows={2}
+                placeholder="စာသားပြင်ရန်..."
+              />
+            </div>
+          ))}
+
+          {/* Facebook Style Save Button */}
+          <button className="w-full py-5 bg-[#42b72a] hover:bg-[#36a420] rounded-[2.2rem] font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-green-900/20 mt-6 active:scale-95 transition-all text-white">
+            Save & Done
+          </button>
+        </div>
+
+      </main>
     </div>
   );
 }
