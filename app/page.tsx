@@ -4,33 +4,33 @@ import { useRouter } from 'next/navigation';
 import { SplashScreen } from '@/components/ui/SplashScreen';
 
 /**
- * Yangon TV - Production Lab
- * Main Landing Page Redirect Logic
- * Created by: YANGON TV 
+ * YANGON TV - PRODUCTION LAB
+ * Master Entry Point (Root Page)
+ * အဝင်ဝမှာ Splash Screen ပြပြီး Login သို့ Redirect လုပ်ပေးမည့်ဖိုင်
  */
 
 export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    // ၁။ App စဖွင့်တာနဲ့ Splash Screen ကို ခဏပြမယ်
-    // ၂။ ၃ စက္ကန့်ပြည့်တာနဲ့ Login Page ကို အလိုအလျောက် ပို့ပေးမယ်
+    // ၂.၅ စက္ကန့် (Splash ပြချိန်) ပြည့်ရင် Login စာမျက်နှာကို ပို့ပါမယ်
     const timer = setTimeout(() => {
       router.push('/login');
-    }, 3000);
+    }, 2500);
 
     return () => clearTimeout(timer);
   }, [router]);
 
   return (
-    <main className="min-h-screen bg-[#f0f2f5] dark:bg-[#0b0d11]">
-      {/* Splash Screen Component ကို ဒီမှာ ခေါ်သုံးထားပါတယ် */}
+    <main className="min-h-screen bg-[#0b0d11] flex items-center justify-center overflow-hidden">
+      {/* SplashScreen Component က Logo နဲ့ Loading animation ကို ပြပေးမှာပါ 
+      */}
       <SplashScreen />
-      
-      {/* Background မှာ တစ်ခုခု လွဲချော်ခဲ့ရင် ပြဖို့ Loading အသေးစား */}
-      <div className="fixed bottom-10 left-0 right-0 text-center animate-pulse">
-        <p className="text-slate-400 text-sm font-medium tracking-widest uppercase">
-          Initializing Terminal...
+
+      {/* အောက်ခြေမှာ ပေါ်မယ့် Loading စာသားလေး (Option) */}
+      <div className="absolute bottom-12 w-full text-center animate-pulse">
+        <p className="text-blue-500/50 text-[10px] font-bold uppercase tracking-[0.5em]">
+          System Loading
         </p>
       </div>
     </main>
