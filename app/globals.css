@@ -2,107 +2,37 @@
 @tailwind components;
 @tailwind utilities;
 
-/* YANGON TV - PRODUCTION LAB 
-  Premium Dark Theme Configuration
-  Created by: Yangon TV
-*/
-
 :root {
-  /* Default အနေနဲ့ Dark Mode အရောင်တွေကိုပဲ သတ်မှတ်ထားပါတယ် (ဖြူမသွားစေဖို့) */
-  --background-rgb: 11, 13, 17;   /* Deep Dark */
-  --foreground-rgb: 255, 255, 255; /* White Text */
-  --card-bg: 26, 28, 35;
-  --accent-blue: 59, 130, 246;
+  --background: 11, 13, 17;
+  --foreground: 255, 255, 255;
 }
 
-/* Force Dark Mode Styles */
 body {
-  color: rgb(var(--foreground-rgb));
-  background-color: rgb(var(--background-rgb)) !important;
-  min-height: 100vh;
+  background-color: #0b0d11 !important;
+  color: white !important;
   margin: 0;
   padding: 0;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
 }
 
-/* Facebook Style Input & Buttons for Dark Mode */
-input {
-  @apply bg-white/5 border-white/10 text-white placeholder:text-slate-500 !important;
-}
-
-button {
-  @apply transition-all duration-300 active:scale-95 !important;
-}
-
-/* Premium Glassmorphism Utility */
-.glass {
+/* Premium Glass UI */
+.glass-panel {
   background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
 }
 
-.glass-card {
-  @apply bg-[#1a1c23]/80 border border-white/5 shadow-2xl backdrop-blur-md;
+/* Facebook Style Input */
+.fb-input {
+  @apply w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-lg text-white;
 }
 
-/* Blue Glow Effects */
-.glow-blue {
-  box-shadow: 0 0 25px rgba(59, 130, 246, 0.2);
+/* Button Styles */
+.btn-primary {
+  @apply w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl text-lg shadow-lg shadow-blue-500/20 active:scale-[0.98] transition-all;
 }
 
-.glow-text {
-  text-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
-}
-
-/* Custom Slim Scrollbar (Premium Look) */
-::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
-}
-
-::-webkit-scrollbar-track {
-  background: #0b0d11;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #1e293b;
-  border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #3b82f6;
-}
-
-/* Subtitle Editor Waveform Canvas */
-canvas {
-  filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.2));
-  border-radius: 8px;
-}
-
-/* Facebook Style Button Colors */
-.btn-fb-blue {
-  @apply bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/20;
-}
-
-.btn-fb-green {
-  @apply bg-[#42b72a] hover:bg-[#36a420] text-white shadow-lg shadow-green-600/20;
-}
-
-/* Animations */
-@keyframes loading-progress {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(250%); }
-}
-
-.animate-loading {
-  animation: loading-progress 1.5s ease-in-out infinite;
-}
-
-/* Utilities for Layout */
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
+.btn-secondary {
+  @apply bg-[#42b72a] hover:bg-[#36a420] text-white font-bold py-3 px-8 rounded-xl transition-all active:scale-[0.98];
 }
