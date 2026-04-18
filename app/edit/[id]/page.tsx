@@ -1,192 +1,185 @@
 "use client";
-import React, { useState, useRef, useEffect } from 'react';
-import { 
-  MonitorPlay, 
-  Type, 
-  Trash2, 
-  Save, 
-  Eraser, 
-  Film, 
-  Layers,
-  ChevronLeft,
-  Loader2,
-  CheckCircle2
-} from 'lucide-react';
-import Link from 'next/link';
-import WaveSurfer from 'wavesurfer.js';
+import React, { useState, useEffect } from 'react';
+import Sidebar from '@/components/ui/Sidebar';
+import { Menu, FileUp, Eraser, Save, Loader2, ArrowLeft } from 'lucide-react';
+import { createClient } from '@supabase/supabase-js';
+import { useParams } from 'next/navigation';
 
-export default function SubtitleEditor() {
-  // --- States ---
-  const [contentType, setContentType] = useState('Movie');
-  const [videoSrc, setVideoSrc] = useState<string | null>(null);
-  const [subtitles, setSubtitles] = useState([{ id: 1, start: '00:00:01,000', end: '00:00:04,000', text: '' }]);
-  const [isScanning, setIsScanning] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  
-  // Refs for Waveform & Video
-  const waveformRef = useRef<HTMLDivElement>(null);
-  const wavesurfer = useRef<WaveSurfer | null>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
+const supabase = createClient(
+  "https://jrgehklgjajjiwjtzrzk.supabase.co",
+  "sb_publishable_anDWJPy4dk8B7AJFGCGUlw_5I-DTYBN"
+);
 
-  // --- 1. Local Video Handler ---
-  const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      setVideoSrc(url);
-      initWaveform(url);
+interface Subtitle {
+  id: number;
+  time: string;
+  text: string;
+}
+
+export default function EditProjectPage() {
+  const params = useParams();
+  const projectId = params.id; // URL ထဲက ID ကို ယူတာပါ
+
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const [title, setTitle] = useState('');
+  const [subtitles, setSubtitles] = useState<Subtitle[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
+
+  // ✅ 1. Database ကနေ မူရင်း Data ကို ပြန်ဆွဲထုတ်ခြင်း
+  useEffect(() => {
+    async function fetchProject() {
+      setIsLoading(true);
+      // Database ကနေ project info ယူမယ်
+      const { data, error } = await supabase
+        .from('history')
+        .select('*')
+        .eq('id', projectId)
+        .single();
+
+      if (data && !error) {
+        setTitle(data.title);
+        // SRT File URL ကနေ စာသားကို ပြန်ဖတ်မယ်
+        try {
+          const res = await fetch(data.download_url);
+          const srtText = await res.text();
+          parseSRT(srtText);
+        } catch (e) {
+          console.error("File loading error:", e);
+        }
+      }
+      setIsLoading(false);
     }
+    if (projectId) fetchProject();
+  }, [projectId]);
+
+  // SRT စာသားကို Editor Format ပြောင်းတဲ့ Function
+  const parseSRT = (content: string) => {
+    const blocks = content.trim().split(/\n\s*\n/);
+    const parsed = blocks.map((b, i) => {
+      const lines = b.trim().split('\n');
+      if (lines.length >= 3) {
+        return { id: i + 1, time: lines[1], text: lines.slice(2).join('\n') };
+      }
+      return null;
+    }).filter((s): s is Subtitle => s !== null);
+    setSubtitles(parsed);
   };
 
-  // --- 2. Waveform Initialization ---
-  const initWaveform = (url: string) => {
-    if (waveformRef.current) {
-      setIsScanning(true);
-      wavesurfer.current = WaveSurfer.create({
-        container: waveformRef.current,
-        waveColor: '#3b82f6',
-        progressColor: '#00f2ff',
-        cursorColor: '#ffffff',
-        height: 80,
-        barWidth: 2,
-      });
-      wavesurfer.current.load(url);
-      wavesurfer.current.on('ready', () => setIsScanning(false));
+  // ✅ 2. Update Logic (မူရင်းဖိုင်ကို ဖျက်ပြီး အသစ်တင်တာ သို့မဟုတ် Update လုပ်တာ)
+  const updateProject = async () => {
+    if (subtitles.length === 0) return;
+    setIsSyncing(true);
+
+    const srtText = subtitles.map(s => `${s.id}\n${s.time}\n${s.text}\n\n`).join('');
+    const fileName = `${Date.now()}_edited_${title.replace(/\s+/g, '_')}.srt`;
+    const fileBody = new Blob([srtText], { type: 'text/plain' });
+
+    try {
+      // Step A: Storage အသစ်ထဲ တင်မယ်
+      const { data: storageData, error: storageError } = await supabase.storage
+        .from('history')
+        .upload(fileName, fileBody);
+
+      if (storageError) throw storageError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('history')
+        .getPublicUrl(fileName);
+
+      // Step B: Database မှာ Link အသစ်နဲ့ Title ကို Update လုပ်မယ်
+      const { error: dbError } = await supabase
+        .from('history')
+        .update({ 
+          title: title, 
+          download_url: publicUrl,
+          created_at: new Date() // ပြင်တဲ့အချိန်ကို Update လုပ်ချင်ရင်
+        })
+        .eq('id', projectId);
+
+      if (dbError) throw dbError;
+
+      alert("Project ကို အောင်မြင်စွာ Update လုပ်ပြီးပါပြီ!");
+      window.location.href = '/history';
+
+    } catch (err: any) {
+      alert("Update Error: " + err.message);
+    } finally {
+      setIsSyncing(false);
     }
-  };
-
-  // --- 3. Blank Line Cleaner ---
-  const clearBlankLines = () => {
-    const cleaned = subtitles.filter(sub => sub.text.trim() !== '');
-    setSubtitles(cleaned.length > 0 ? cleaned : [{ id: Date.now(), start: '00:00:01', end: '00:00:04', text: '' }]);
-  };
-
-  // --- 4. Delete Single Line ---
-  const deleteLine = (id: number) => {
-    setSubtitles(subtitles.filter(sub => sub.id !== id));
   };
 
   return (
-    <div className="min-h-screen bg-[#0b0d11] text-white p-4 md:p-6 pb-32">
-      {/* Top Navigation & Info Box */}
-      <div className="max-w-[1600px] mx-auto mb-6">
-        <div className="flex items-center gap-4 mb-6">
-          <Link href="/dashboard" className="p-2 glass rounded-xl text-slate-400 hover:text-white transition-all">
-            <ChevronLeft size={24} />
-          </Link>
-          <h1 className="text-xl font-bold tracking-tight">Production Lab <span className="text-blue-500">Editor</span></h1>
+    <div className="min-h-screen bg-[#0b0d11] text-white flex flex-col">
+      <Sidebar isOpen={isSidebarOpen} toggleMenu={toggleSidebar} />
+      
+      {/* Header */}
+      <header className="p-5 flex justify-between items-center border-b border-white/5 sticky top-0 bg-[#0b0d11]/95 backdrop-blur-md z-40">
+        <button onClick={() => window.location.href='/history'} className="w-10 h-10 flex items-center justify-center rounded-xl glass">
+          <ArrowLeft size={20} className="text-slate-400" />
+        </button>
+        <div class="text-center">
+            <h1 class="text-base font-black italic uppercase text-blue-500 tracking-tighter leading-none">Edit Mode</h1>
+            <p class="text-[7px] font-bold text-slate-500 uppercase tracking-widest mt-1">Updating Lab Project</p>
         </div>
+        <button onClick={toggleSidebar} class="w-10 h-10 flex items-center justify-center rounded-xl glass">
+            <Menu size={20} className="text-slate-300" />
+        </button>
+      </header>
 
-        {/* Info Box Section */}
-        <div className="glass p-6 rounded-[2rem] border-white/5 grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="space-y-2">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
-              <Layers size={12} /> Content Type
-            </label>
-            <select 
-              className="w-full bg-black/40 border border-white/10 p-3 rounded-xl outline-none focus:border-blue-500/50"
-              onChange={(e) => setContentType(e.target.value)}
-            >
-              <option value="Movie">Movie</option>
-              <option value="Series">Series</option>
-            </select>
+      <main className="max-w-xl mx-auto w-full p-4 space-y-6 flex-1 pb-32">
+        {isLoading ? (
+          <div className="py-40 text-center opacity-30 flex flex-col items-center">
+             <Loader2 className="animate-spin mb-4" size={30} />
+             <p className="text-[10px] font-black uppercase tracking-widest">Loading Project Data</p>
           </div>
-          
-          <div className="md:col-span-1 space-y-2">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
-              <Film size={12} /> Title
-            </label>
-            <input type="text" placeholder="Stranger Things" className="w-full bg-black/40 border border-white/10 p-3 rounded-xl outline-none focus:border-blue-500/50" />
-          </div>
-
-          {contentType === 'Series' && (
-            <div className="flex gap-4">
-              <div className="space-y-2 flex-1">
-                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Season</label>
-                <input type="number" placeholder="1" className="w-full bg-black/40 border border-white/10 p-3 rounded-xl outline-none focus:border-blue-500/50" />
-              </div>
-              <div className="space-y-2 flex-1">
-                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Episode</label>
-                <input type="number" placeholder="5" className="w-full bg-black/40 border border-white/10 p-3 rounded-xl outline-none focus:border-blue-500/50" />
-              </div>
+        ) : (
+          <div className="animate-fade-in space-y-6">
+            {/* Title Input */}
+            <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-600 uppercase ml-4 tracking-widest">Project Title</label>
+                <input value={title} onChange={e => setTitle(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-[1.5rem] p-5 outline-none focus:border-blue-500 font-bold italic text-sm" />
             </div>
-          )}
 
-          <div className="space-y-2">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
-              <Type size={12} /> Editor Name
-            </label>
-            <input type="text" placeholder="Zin Ko Ko Lwin" className="w-full bg-black/40 border border-white/10 p-3 rounded-xl outline-none focus:border-blue-500/50" />
-          </div>
-        </div>
-      </div>
-
-      {/* Workspace Area */}
-      <div className="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
-        {/* Left: Video Preview & Waveform */}
-        <div className="space-y-6">
-          <div className="relative aspect-video glass rounded-[2.5rem] overflow-hidden flex items-center justify-center border-white/5 group">
-            {videoSrc ? (
-              <video ref={videoRef} src={videoSrc} controls className="w-full h-full object-contain" />
-            ) : (
-              <div className="text-center">
-                <div className="p-6 bg-blue-500/10 rounded-full inline-block mb-4 text-blue-500">
-                  <MonitorPlay size={48} />
+            {/* Subtitle Editor List */}
+            <div className="space-y-4">
+              {subtitles.map((sub, idx) => (
+                <div key={sub.id} className="bg-white/[0.03] p-6 rounded-[2rem] border border-white/5">
+                  <div className="flex justify-between text-[9px] font-black text-blue-500 mb-3 uppercase tracking-widest">
+                    <span>Line #{sub.id}</span>
+                    <span className="font-mono text-slate-500">{sub.time}</span>
+                  </div>
+                  <textarea 
+                    value={sub.text} 
+                    onChange={e => {
+                      const newSubs = [...subtitles];
+                      newSubs[idx].text = e.target.value;
+                      setSubtitles(newSubs);
+                    }}
+                    className="w-full bg-transparent outline-none text-slate-200 text-sm resize-none font-medium leading-relaxed" rows={2} 
+                  />
                 </div>
-                <p className="text-slate-500 text-sm font-medium">Select a video to start scanning</p>
-                <input type="file" accept="video/*" onChange={handleVideoUpload} className="absolute inset-0 opacity-0 cursor-pointer" />
-              </div>
-            )}
-          </div>
-
-          <div className="glass p-6 rounded-[2rem] border-blue-500/10">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-blue-400">Audio Waveform Analysis</h3>
-              {isScanning && <Loader2 className="animate-spin text-blue-500" size={16} />}
+              ))}
             </div>
-            <div ref={waveformRef} className="rounded-xl overflow-hidden bg-black/20" />
           </div>
-        </div>
+        )}
+      </main>
 
-        {/* Right: Subtitle List & Tools */}
-        <div className="glass rounded-[2.5rem] flex flex-col h-[600px] border-white/5">
-          <div className="p-6 border-b border-white/5 flex justify-between items-center">
-            <div className="flex gap-2">
-              <button onClick={clearBlankLines} className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs font-bold transition-all">
-                <Eraser size={14} /> Blank Line Clear
-              </button>
-            </div>
-            <button className="flex items-center gap-2 px-6 py-2 bg-blue-600 hover:bg-blue-500 rounded-xl text-xs font-bold shadow-lg shadow-blue-600/20">
-              <Save size={14} /> Save to Cloud
-            </button>
-          </div>
-
-          <div className="flex-1 overflow-y-auto p-6 space-y-4">
-            {subtitles.map((sub) => (
-              <div key={sub.id} className="flex gap-4 items-start group">
-                <div className="flex flex-col gap-1 text-[10px] font-mono text-slate-500 pt-3">
-                  <input value={sub.start} className="bg-transparent border-none outline-none w-20" />
-                  <input value={sub.end} className="bg-transparent border-none outline-none w-20" />
-                </div>
-                <textarea 
-                  value={sub.text}
-                  placeholder="Enter translation..."
-                  className="flex-1 bg-black/30 border border-white/5 rounded-2xl p-4 text-sm outline-none focus:border-blue-500/30 transition-all resize-none h-24"
-                  onChange={(e) => {
-                    const newSubs = [...subtitles];
-                    newSubs.find(s => s.id === sub.id)!.text = e.target.value;
-                    setSubtitles(newSubs);
-                  }}
-                />
-                <button onClick={() => deleteLine(sub.id)} className="p-2 text-slate-600 hover:text-red-500 transition-colors">
-                  <Trash2 size={18} />
-                </button>
-              </div>
-            ))}
-          </div>
+      {/* Save Button */}
+      {!isLoading && (
+        <div className="fixed bottom-0 inset-x-0 p-6 bg-gradient-to-t from-[#0b0d11] via-[#0b0d11] to-transparent z-40">
+          <button 
+            onClick={updateProject}
+            disabled={isSyncing}
+            className="w-full max-w-xl mx-auto flex items-center justify-center gap-3 py-5 bg-blue-600 hover:bg-blue-500 rounded-[2rem] font-black text-xs uppercase tracking-widest shadow-xl shadow-blue-600/20 active:scale-95 transition-all disabled:opacity-50"
+          >
+            {isSyncing ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
+            {isSyncing ? "Updating Lab..." : "Update Changes"}
+          </button>
         </div>
-      </div>
+      )}
     </div>
   );
-}
+        }
