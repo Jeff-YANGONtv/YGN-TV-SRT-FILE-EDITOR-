@@ -2,38 +2,44 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, FileEdit, Library, Settings } from 'lucide-react';
+import { File as FileEdit, History, CircleUser as UserCircle2, Home } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export const BottomNav = () => {
   const pathname = usePathname();
-  const isAuthPage = pathname === '/login' || pathname === '/signup' || pathname === '/';
+  const isAuthPage = pathname === '/';
   if (isAuthPage) return null;
 
   const navItems = [
-    { name: 'Home', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Home', href: '/edit/new', icon: Home },
     { name: 'Editor', href: '/edit/new', icon: FileEdit },
-    { name: 'Projects', href: '/projects', icon: Library },
-    { name: 'Settings', href: '/settings', icon: Settings },
+    { name: 'History', href: '/history', icon: History },
+    { name: 'Profile', href: '/profile', icon: UserCircle2 },
+  ];
+
+  const uniqueItems = [
+    { name: 'Editor', href: '/edit/new', icon: FileEdit },
+    { name: 'History', href: '/history', icon: History },
+    { name: 'Profile', href: '/profile', icon: UserCircle2 },
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-[100] bg-black/80 backdrop-blur-xl border-t border-white/10 md:hidden h-20">
-      <div className="flex justify-around items-center h-full px-2">
-        {navItems.map((item) => {
+    <nav className="fixed bottom-0 left-0 right-0 z-[100] bg-[#0b0d11]/95 backdrop-blur-xl border-t border-white/8 md:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+      <div className="flex justify-around items-center h-16 px-2">
+        {uniqueItems.map((item) => {
           const Icon = item.icon;
-          const isActive = pathname.startsWith(item.href);
-          
+          const isActive = pathname === item.href || (item.href !== '/edit/new' && pathname.startsWith(item.href));
+
           return (
-            <Link key={item.name} href={item.href} className="flex flex-col items-center gap-1 min-w-[60px]">
+            <Link key={item.name} href={item.href} className="flex flex-col items-center gap-1 min-w-[64px] py-2">
               <div className={cn(
-                "p-2 rounded-2xl transition-all duration-300",
-                isActive ? "text-blue-500 bg-blue-500/10" : "text-slate-500"
+                "p-2 rounded-xl transition-all duration-200",
+                isActive ? "text-blue-500 bg-blue-500/10" : "text-slate-500 hover:text-slate-300"
               )}>
-                <Icon size={24} strokeWidth={isActive ? 2.5 : 2} />
+                <Icon size={22} strokeWidth={isActive ? 2.5 : 1.8} />
               </div>
               <span className={cn(
-                "text-[9px] font-bold uppercase tracking-widest",
+                "text-[8px] font-black uppercase tracking-widest transition-colors",
                 isActive ? "text-blue-500" : "text-slate-600"
               )}>
                 {item.name}
