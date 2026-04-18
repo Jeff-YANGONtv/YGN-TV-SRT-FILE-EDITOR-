@@ -1,9 +1,9 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import Sidebar from '@/components/ui/Sidebar';
-import { Menu, FileUp, Eraser, Save, Loader2, ArrowLeft } from 'lucide-react';
+import { Menu, Eraser, Save, Loader2, ArrowLeft } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 
 const supabase = createClient(
   "https://jrgehklgjajjiwjtzrzk.supabase.co",
@@ -18,7 +18,8 @@ interface Subtitle {
 
 export default function EditProjectPage() {
   const params = useParams();
-  const projectId = params.id; // URL ထဲက ID ကို ယူတာပါ
+  const router = useRouter();
+  const projectId = params.id;
 
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [title, setTitle] = useState('');
@@ -28,11 +29,9 @@ export default function EditProjectPage() {
 
   const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
 
-  // ✅ 1. Database ကနေ မူရင်း Data ကို ပြန်ဆွဲထုတ်ခြင်း
   useEffect(() => {
     async function fetchProject() {
       setIsLoading(true);
-      // Database ကနေ project info ယူမယ်
       const { data, error } = await supabase
         .from('history')
         .select('*')
@@ -41,7 +40,6 @@ export default function EditProjectPage() {
 
       if (data && !error) {
         setTitle(data.title);
-        // SRT File URL ကနေ စာသားကို ပြန်ဖတ်မယ်
         try {
           const res = await fetch(data.download_url);
           const srtText = await res.text();
@@ -55,7 +53,6 @@ export default function EditProjectPage() {
     if (projectId) fetchProject();
   }, [projectId]);
 
-  // SRT စာသားကို Editor Format ပြောင်းတဲ့ Function
   const parseSRT = (content: string) => {
     const blocks = content.trim().split(/\n\s*\n/);
     const parsed = blocks.map((b, i) => {
@@ -68,9 +65,8 @@ export default function EditProjectPage() {
     setSubtitles(parsed);
   };
 
-  // ✅ 2. Update Logic (မူရင်းဖိုင်ကို ဖျက်ပြီး အသစ်တင်တာ သို့မဟုတ် Update လုပ်တာ)
   const updateProject = async () => {
-    if (subtitles.length === 0) return;
+    if (!title || subtitles.length === 0) return alert("Data အစုံအလင်မရှိပါ!");
     setIsSyncing(true);
 
     const srtText = subtitles.map(s => `${s.id}\n${s.time}\n${s.text}\n\n`).join('');
@@ -78,7 +74,6 @@ export default function EditProjectPage() {
     const fileBody = new Blob([srtText], { type: 'text/plain' });
 
     try {
-      // Step A: Storage အသစ်ထဲ တင်မယ်
       const { data: storageData, error: storageError } = await supabase.storage
         .from('history')
         .upload(fileName, fileBody);
@@ -89,23 +84,21 @@ export default function EditProjectPage() {
         .from('history')
         .getPublicUrl(fileName);
 
-      // Step B: Database မှာ Link အသစ်နဲ့ Title ကို Update လုပ်မယ်
       const { error: dbError } = await supabase
         .from('history')
         .update({ 
           title: title, 
-          download_url: publicUrl,
-          created_at: new Date() // ပြင်တဲ့အချိန်ကို Update လုပ်ချင်ရင်
+          download_url: publicUrl 
         })
         .eq('id', projectId);
 
       if (dbError) throw dbError;
 
-      alert("Project ကို အောင်မြင်စွာ Update လုပ်ပြီးပါပြီ!");
-      window.location.href = '/history';
+      alert("Update အောင်မြင်ပါတယ် အစ်ကို!");
+      router.push('/history');
 
     } catch (err: any) {
-      alert("Update Error: " + err.message);
+      alert("Error: " + err.message);
     } finally {
       setIsSyncing(false);
     }
@@ -115,16 +108,15 @@ export default function EditProjectPage() {
     <div className="min-h-screen bg-[#0b0d11] text-white flex flex-col">
       <Sidebar isOpen={isSidebarOpen} toggleMenu={toggleSidebar} />
       
-      {/* Header */}
       <header className="p-5 flex justify-between items-center border-b border-white/5 sticky top-0 bg-[#0b0d11]/95 backdrop-blur-md z-40">
-        <button onClick={() => window.location.href='/history'} className="w-10 h-10 flex items-center justify-center rounded-xl glass">
+        <button onClick={() => router.push('/history')} className="w-10 h-10 flex items-center justify-center rounded-xl glass active:scale-90 transition">
           <ArrowLeft size={20} className="text-slate-400" />
         </button>
-        <div class="text-center">
-            <h1 class="text-base font-black italic uppercase text-blue-500 tracking-tighter leading-none">Edit Mode</h1>
-            <p class="text-[7px] font-bold text-slate-500 uppercase tracking-widest mt-1">Updating Lab Project</p>
+        <div className="text-center">
+            <h1 className="text-base font-black italic uppercase text-blue-500 tracking-tighter leading-none">Edit Mode</h1>
+            <p className="text-[7px] font-bold text-slate-500 uppercase tracking-widest mt-1">Updating Lab Project</p>
         </div>
-        <button onClick={toggleSidebar} class="w-10 h-10 flex items-center justify-center rounded-xl glass">
+        <button onClick={toggleSidebar} className="w-10 h-10 flex items-center justify-center rounded-xl glass">
             <Menu size={20} className="text-slate-300" />
         </button>
       </header>
@@ -137,16 +129,18 @@ export default function EditProjectPage() {
           </div>
         ) : (
           <div className="animate-fade-in space-y-6">
-            {/* Title Input */}
             <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-600 uppercase ml-4 tracking-widest">Project Title</label>
-                <input value={title} onChange={e => setTitle(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-[1.5rem] p-5 outline-none focus:border-blue-500 font-bold italic text-sm" />
+                <input 
+                  value={title} 
+                  onChange={e => setTitle(e.target.value)} 
+                  className="w-full bg-white/5 border border-white/10 rounded-[1.5rem] p-5 outline-none focus:border-blue-500 font-bold italic text-sm" 
+                />
             </div>
 
-            {/* Subtitle Editor List */}
             <div className="space-y-4">
               {subtitles.map((sub, idx) => (
-                <div key={sub.id} className="bg-white/[0.03] p-6 rounded-[2rem] border border-white/5">
+                <div key={sub.id} className="bg-white/[0.03] p-6 rounded-[2rem] border border-white/5 animate-fade-in">
                   <div className="flex justify-between text-[9px] font-black text-blue-500 mb-3 uppercase tracking-widest">
                     <span>Line #{sub.id}</span>
                     <span className="font-mono text-slate-500">{sub.time}</span>
@@ -158,7 +152,8 @@ export default function EditProjectPage() {
                       newSubs[idx].text = e.target.value;
                       setSubtitles(newSubs);
                     }}
-                    className="w-full bg-transparent outline-none text-slate-200 text-sm resize-none font-medium leading-relaxed" rows={2} 
+                    className="w-full bg-transparent outline-none text-slate-200 text-sm resize-none font-medium leading-relaxed" 
+                    rows={2} 
                   />
                 </div>
               ))}
@@ -167,7 +162,6 @@ export default function EditProjectPage() {
         )}
       </main>
 
-      {/* Save Button */}
       {!isLoading && (
         <div className="fixed bottom-0 inset-x-0 p-6 bg-gradient-to-t from-[#0b0d11] via-[#0b0d11] to-transparent z-40">
           <button 
@@ -182,4 +176,4 @@ export default function EditProjectPage() {
       )}
     </div>
   );
-        }
+}
