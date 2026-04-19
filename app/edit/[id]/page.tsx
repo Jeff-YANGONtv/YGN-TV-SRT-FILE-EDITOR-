@@ -108,6 +108,7 @@ export default function EditProjectPage() {
     <div className="min-h-screen bg-[#0b0d11] text-white flex flex-col">
       <Sidebar isOpen={isSidebarOpen} toggleMenu={toggleSidebar} />
       
+      {/* --- VERCEL ERROR တက်တဲ့နေရာကို className နဲ့ ပြင်ထားပါတယ် --- */}
       <header className="p-5 flex justify-between items-center border-b border-white/5 sticky top-0 bg-[#0b0d11]/95 backdrop-blur-md z-40">
         <button onClick={() => router.push('/history')} className="w-10 h-10 flex items-center justify-center rounded-xl glass active:scale-90 transition">
           <ArrowLeft size={20} className="text-slate-400" />
@@ -176,4 +177,4 @@ export default function EditProjectPage() {
       )}
     </div>
   );
-}
+                  }
