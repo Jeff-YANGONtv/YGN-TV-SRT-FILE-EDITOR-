@@ -2,13 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '@/components/ui/Sidebar';
 import { Menu, Camera, LogOut, Loader2 } from 'lucide-react';
-import { createClient } from '@supabase/supabase-js';
 
-// Supabase Connection
-const supabase = createClient(
-  "https://jrgehklgjajjiwjtzrzk.supabase.co",
-  "sb_publishable_anDWJPy4dk8B7AJFGCGUlw_5I-DTYBN"
-);
+// Google Apps Script URL for fetching history data
+const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyiU7Z_rbs_LN5iz8rEGs8FI8AJi5ckGXsmykFW2c9nczFqZ8HQVtUBhNwq68LOIe44_w/exec';
 
 export default function ProfilePage() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -17,20 +13,24 @@ export default function ProfilePage() {
 
   const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
 
-  // ⭐ Database ကနေ Movie နဲ့ Series အရေအတွက်ကို Live တွက်ချက်ခြင်း
+  // ⭐ Google Apps Script ကနေ Movie နဲ့ Series အရေအတွက်ကို Live တွက်ချက်ခြင်း
   useEffect(() => {
     async function fetchStats() {
       setIsLoading(true);
-      const { data, error } = await supabase
-        .from('history')
-        .select('type');
-
-      if (!error && data) {
-        const movieCount = data.filter(i => i.type?.toLowerCase() === 'movie').length;
-        const seriesCount = data.filter(i => i.type?.toLowerCase() === 'series').length;
-        setStats({ movie: movieCount, series: seriesCount });
+      try {
+        const response = await fetch(GOOGLE_APPS_SCRIPT_URL);
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+          const movieCount = result.data.filter((i: any) => i.type?.toLowerCase() === 'movie').length;
+          const seriesCount = result.data.filter((i: any) => i.type?.toLowerCase() === 'series').length;
+          setStats({ movie: movieCount, series: seriesCount });
+        }
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     }
     fetchStats();
   }, []);

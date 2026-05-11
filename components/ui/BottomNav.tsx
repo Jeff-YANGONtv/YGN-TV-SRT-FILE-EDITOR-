@@ -2,7 +2,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { File as FileEdit, History, CircleUser as UserCircle2, Home } from 'lucide-react';
+import { File as FileEdit, CircleUser as UserCircle2, Home } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export const BottomNav = () => {
@@ -10,16 +10,8 @@ export const BottomNav = () => {
   const isAuthPage = pathname === '/';
   if (isAuthPage) return null;
 
-  const navItems = [
-    { name: 'Home', href: '/edit/new', icon: Home },
-    { name: 'Editor', href: '/edit/new', icon: FileEdit },
-    { name: 'History', href: '/history', icon: History },
-    { name: 'Profile', href: '/profile', icon: UserCircle2 },
-  ];
-
   const uniqueItems = [
     { name: 'Editor', href: '/edit/new', icon: FileEdit },
-    { name: 'History', href: '/history', icon: History },
     { name: 'Profile', href: '/profile', icon: UserCircle2 },
   ];
 

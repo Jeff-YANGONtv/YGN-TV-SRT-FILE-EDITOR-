@@ -2,7 +2,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { File as FileEdit, History, UserCog, LogOut, X, MonitorPlay } from 'lucide-react';
+import { File as FileEdit, UserCog, LogOut, X, MonitorPlay } from 'lucide-react';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -14,7 +14,6 @@ export default function Sidebar({ isOpen, toggleMenu }: SidebarProps) {
 
   const navItems = [
     { href: '/edit/new', label: 'EDIT', icon: FileEdit, match: '/edit' },
-    { href: '/history', label: 'HISTORY', icon: History, match: '/history' },
     { href: '/profile', label: 'PROFILE', icon: UserCog, match: '/profile' },
   ];
 
