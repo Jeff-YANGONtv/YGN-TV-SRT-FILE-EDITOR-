@@ -2,17 +2,12 @@
 import React, { useState } from 'react';
 import Sidebar from '@/components/ui/Sidebar';
 import { Menu, FileUp, Eraser, Clock, Save, Loader2, History } from 'lucide-react';
-import { createClient } from '@supabase/supabase-js';
-
-// --- SUPABASE CONFIG ---
-const supabase = createClient(
-  "https://jrgehklgjajjiwjtzrzk.supabase.co",
-  "sb_publishable_anDWJPy4dk8B7AJFGCGUlw_5I-DTYBN"
-);
+import { parseSRTContent, subtitlesToSRTString } from '@/lib/srtParser';
 
 interface Subtitle {
   id: number;
-  time: string;
+  startTime: string;
+  endTime: string;
   text: string;
 }
 
@@ -27,25 +22,26 @@ export default function SRTEditorMaster() {
 
   const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
 
-  // ✅ 1. SRT File Upload Logic (တကယ်အလုပ်လုပ်အောင် ပြင်ထားသည်)
+  // ✅ 1. SRT File Upload Logic (Improved with robust parsing)
   const handleSRTUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     const reader = new FileReader();
     reader.onload = (event) => {
-      const content = event.target?.result as string;
-      const blocks = content.trim().split(/\n\s*\n/);
-      const parsed = blocks.map((b, i) => {
-        const lines = b.trim().split('\n');
-        if (lines.length >= 3) {
-          return { id: i + 1, time: lines[1], text: lines.slice(2).join('\n') };
-        }
-        return null;
-      }).filter((s): s is Subtitle => s !== null);
-      setSubtitles(parsed);
+      try {
+        const content = event.target?.result as string;
+        const parsed = parseSRTContent(content);
+        setSubtitles(parsed);
+      } catch (error) {
+        alert('Error parsing SRT file. Please check the file format.');
+        console.error('SRT parsing error:', error);
+      }
     };
-    reader.readAsText(file);
+    reader.onerror = () => {
+      alert('Error reading file. Please try again.');
+    };
+    reader.readAsText(file, 'UTF-8');
   };
 
   // ✅ 2. Blank Lines Delete Logic
@@ -53,54 +49,65 @@ export default function SRTEditorMaster() {
     if (subtitles.length === 0) return;
     const cleaned = subtitles.map(s => ({
       ...s,
-      text: s.text.split('\n').filter(l => l.trim() !== '').join('\n')
+      text: s.text
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line !== '')
+        .join('\n')
     }));
     setSubtitles(cleaned);
   };
 
-  // ✅ 3. Real-time Save Logic (Storage + DB Sync)
-  const saveToSupabase = async () => {
-    if (!title || subtitles.length === 0) return alert("Title နဲ့ SRT ဖိုင် လိုအပ်ပါတယ် အစ်ကို!");
+  // ✅ 3. Save to Google Apps Script (with UTF-8 encoding)
+  const saveToGoogleAppsScript = async () => {
+    if (!title || subtitles.length === 0) {
+      return alert("Title နဲ့ SRT ဖိုင် လိုအပ်ပါတယ် အစ်ကို!");
+    }
 
     setIsSyncing(true);
     let finalTitle = title;
     if (metaType === 'series') finalTitle += ` - S${season}E${episode}`;
 
-    // SRT Content ပြန်တည်ဆောက်ခြင်း
-    const srtText = subtitles.map(s => `${s.id}\n${s.time}\n${s.text}\n\n`).join('');
-    const fileName = `${Date.now()}_${finalTitle.replace(/\s+/g, '_')}.srt`;
-    const fileBody = new Blob([srtText], { type: 'text/plain' });
-
     try {
-      // Step A: Storage 'history' bucket ထဲ တင်ခြင်း
-      const { data: storageData, error: storageError } = await supabase.storage
-        .from('history')
-        .upload(fileName, fileBody);
+      // Convert subtitles to SRT format string
+      const srtContent = subtitlesToSRTString(subtitles);
 
-      if (storageError) throw storageError;
+      // Prepare JSON payload
+      const payload = {
+        srtContent: srtContent,
+        editorName: "Zin KO KO Lwin",
+        movieTitle: title,
+        season: metaType === 'series' ? season : null,
+        episode: metaType === 'series' ? episode : null,
+      };
 
-      // Step B: Direct Public Link ယူခြင်း
-      const { data: { publicUrl } } = supabase.storage
-        .from('history')
-        .getPublicUrl(fileName);
+      // Send to Google Apps Script
+      const response = await fetch(
+        'https://script.google.com/macros/s/AKfycbyiU7Z_rbs_LN5iz8rEGs8FI8AJi5ckGXsmykFW2c9nczFqZ8HQVtUBhNwq68LOIe44_w/exec',
+        {
+          method: 'POST',
+          body: JSON.stringify(payload),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
-      // Step C: History Table ထဲ Data သိမ်းခြင်း
-      const { error: dbError } = await supabase
-        .from('history')
-        .insert([{
-          title: finalTitle,
-          editor_name: "Zin KO KO Lwin",
-          download_url: publicUrl,
-          type: metaType.charAt(0).toUpperCase() + metaType.slice(1)
-        }]);
+      const result = await response.json();
 
-      if (dbError) throw dbError;
-
-      alert("အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ!");
-      window.location.href = '/history';
-
+      if (result.success) {
+        alert("အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ!");
+        // Reset form
+        setTitle('');
+        setSubtitles([]);
+        setSeason('');
+        setEpisode('');
+      } else {
+        alert("Error: " + result.message);
+      }
     } catch (err: any) {
       alert("Error: " + err.message);
+      console.error('Save error:', err);
     } finally {
       setIsSyncing(false);
     }
@@ -165,7 +172,7 @@ export default function SRTEditorMaster() {
             <div key={sub.id} className="bg-white/[0.03] p-6 rounded-[2rem] border border-white/5 animate-fade-in">
               <div className="flex justify-between text-[9px] font-black text-blue-500 mb-3 uppercase tracking-widest">
                 <span>Line #{sub.id}</span>
-                <span className="font-mono text-slate-500">{sub.time}</span>
+                <span className="font-mono text-slate-500 text-[8px]">{sub.startTime} → {sub.endTime}</span>
               </div>
               <textarea 
                 value={sub.text} 
@@ -189,12 +196,12 @@ export default function SRTEditorMaster() {
       {/* Fixed Save Button */}
       <div className="fixed bottom-0 inset-x-0 p-6 bg-gradient-to-t from-[#0b0d11] via-[#0b0d11] to-transparent z-40">
         <button 
-          onClick={saveToSupabase}
+          onClick={saveToGoogleAppsScript}
           disabled={isSyncing}
           className="w-full max-w-xl mx-auto flex items-center justify-center gap-3 py-5 bg-[#42b72a] hover:bg-[#3bab25] rounded-[2rem] font-black text-xs uppercase tracking-widest shadow-xl shadow-green-600/20 active:scale-95 transition-all disabled:opacity-50"
         >
           {isSyncing ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
-          {isSyncing ? "Syncing to Supabase..." : "Save & Sync to History"}
+          {isSyncing ? "Saving to Google Drive..." : "Save & Upload to Drive"}
         </button>
       </div>
     </div>
