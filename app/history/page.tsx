@@ -2,13 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '@/components/ui/Sidebar';
 import { Menu, Download, Loader2 } from 'lucide-react';
-import { createClient } from '@supabase/supabase-js';
 
-// Supabase Connection
-const supabase = createClient(
-  "https://jrgehklgjajjiwjtzrzk.supabase.co",
-  "sb_publishable_anDWJPy4dk8B7AJFGCGUlw_5I-DTYBN"
-);
+// Google Apps Script URL for fetching history data
+const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyiU7Z_rbs_LN5iz8rEGs8FI8AJi5ckGXsmykFW2c9nczFqZ8HQVtUBhNwq68LOIe44_w/exec';
 
 export default function HistoryPage() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -18,17 +14,24 @@ export default function HistoryPage() {
 
   const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
 
-  // ⭐ Database ကနေ Data ဆွဲထုတ်ခြင်း
+  // ⭐ Google Apps Script ကနေ Data ဆွဲထုတ်ခြင်း
   useEffect(() => {
     async function fetchHistory() {
       setIsLoading(true);
-      const { data, error } = await supabase
-        .from('history')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (!error) setHistoryData(data || []);
-      setIsLoading(false);
+      try {
+        const response = await fetch(GOOGLE_APPS_SCRIPT_URL);
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+          setHistoryData(result.data);
+        } else {
+          console.error('Failed to fetch history:', result.message);
+        }
+      } catch (error) {
+        console.error('Error fetching history:', error);
+      } finally {
+        setIsLoading(false);
+      }
     }
     fetchHistory();
   }, []);
@@ -123,7 +126,10 @@ export default function HistoryPage() {
                       {item.title}
                     </td>
                     <td className="p-4 opacity-70 font-mono">
-                      {new Date(item.created_at).toLocaleDateString('en-GB')}
+                      {typeof item.created_at === 'string' 
+                        ? new Date(item.created_at).toLocaleDateString('en-GB')
+                        : new Date(item.created_at[0], item.created_at[1] - 1, item.created_at[2]).toLocaleDateString('en-GB')
+                      }
                     </td>
                     <td className="p-4 text-center">
                       <a 
