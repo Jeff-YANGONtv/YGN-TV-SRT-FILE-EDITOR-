@@ -67,7 +67,7 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Team Email Address" 
+                placeholder="Email Address" 
                 className="w-full bg-white/[0.03] border border-white/5 rounded-[1.5rem] p-5 pl-14 outline-none focus:border-blue-600 focus:bg-white/[0.05] transition-all font-medium text-sm"
               />
             </div>
