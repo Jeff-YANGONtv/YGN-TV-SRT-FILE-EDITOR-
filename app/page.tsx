@@ -33,7 +33,7 @@ export default function RegisterPage() {
         setErrorMsg(error.message);
         setLoading(false);
       } else {
-        alert("Account ဖွင့်တာ အောင်မြင်ပါတယ်။ Email ထဲမှာ Confirm လုပ်ပေးပါ အစ်ကို။");
+        alert("Account ဖွင့်တာ အောင်မြင်ပါတယ်။ Email ထဲမှာ Confirm လုပ်ပေးပါ ");
         window.location.href = '/login';
       }
     } catch (err) {
@@ -55,7 +55,7 @@ export default function RegisterPage() {
           </div>
           <div>
             <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none">
-              Join The <span className="text-blue-500">Lab</span>
+              Join Our  <span className="text-blue-500">Production Lab</span>
             </h1>
             <p className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.3em] mt-2 italic">
               Create Team Member Account
@@ -80,7 +80,7 @@ export default function RegisterPage() {
                 required
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder="Full Name (Zin Ko Ko Lwin)" 
+                placeholder="Full Name (Your Editor Name)" 
                 className="w-full bg-white/[0.03] border border-white/5 rounded-[1.5rem] p-5 pl-14 outline-none focus:border-blue-600 focus:bg-white/[0.05] transition-all font-medium text-sm"
               />
             </div>
