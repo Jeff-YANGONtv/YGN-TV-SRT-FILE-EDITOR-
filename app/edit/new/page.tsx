@@ -149,10 +149,11 @@ export default function SRTEditorMaster() {
         setSeason('');
         setEpisode('');
       } else {
-        alert("Error: " + result.message);
+        const errorDetail = result.details ? `\nDetails: ${JSON.stringify(result.details)}` : '';
+        alert("Error: " + (result.message || result.error) + errorDetail);
       }
     } catch (err: any) {
-      alert("Error: " + err.message);
+      alert("Network Error: " + err.message);
       console.error('Save error:', err);
     } finally {
       setIsSyncing(false);

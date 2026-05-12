@@ -5,6 +5,22 @@ import { createClient } from '@/lib/supabase/server';
 export async function POST(request: Request) {
   try {
     const { srtContent, movieTitle, season, episode, editorName } = await request.json();
+
+    // Environment variables validation
+    const requiredEnvVars = [
+      'GOOGLE_CLIENT_EMAIL',
+      'GOOGLE_PRIVATE_KEY',
+      'GOOGLE_DRIVE_FOLDER_ID',
+      'GOOGLE_SHEET_ID'
+    ];
+    
+    const missingVars = requiredEnvVars.filter(v => !process.env[v]);
+    if (missingVars.length > 0) {
+      return NextResponse.json({ 
+        success: false, 
+        message: `Missing environment variables: ${missingVars.join(', ')}` 
+      }, { status: 500 });
+    }
     
     // ၁။ Auth စစ်ဆေးခြင်း
     const supabase = await createClient();
@@ -13,7 +29,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const finalTitle = season && episode ? `${movieTitle} - S${season}E${episode}` : movieTitle;
+    const finalTitle = (season && episode) ? `${movieTitle} - S${season}E${episode}` : movieTitle;
     const fileName = `${finalTitle}.srt`;
 
     // ၂။ Google Auth Setup
@@ -82,6 +98,15 @@ export async function POST(request: Request) {
 
   } catch (error: any) {
     console.error('Save All Error:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    // Provide more detailed error information for debugging
+    const errorMessage = error.message || 'Unknown error occurred';
+    const errorStack = process.env.NODE_ENV === 'development' ? error.stack : undefined;
+    
+    return NextResponse.json({ 
+      success: false, 
+      message: errorMessage,
+      error: errorMessage,
+      details: error.response?.data || errorStack
+    }, { status: 500 });
   }
 }
