@@ -4,7 +4,18 @@ import { createClient } from '@/lib/supabase/server';
 
 export async function POST(request: Request) {
   try {
-    const { srtContent, movieTitle, season, episode, editorName } = await request.json();
+    let body;
+    try {
+      body = await request.json();
+    } catch (e) {
+      return NextResponse.json({ success: false, message: "Invalid JSON in request body" }, { status: 400 });
+    }
+
+    const { srtContent, movieTitle, season, episode, editorName } = body;
+
+    if (!srtContent || !movieTitle) {
+      return NextResponse.json({ success: false, message: "Missing required fields: srtContent or movieTitle" }, { status: 400 });
+    }
 
     // Environment variables validation
     const requiredEnvVars = [
@@ -90,9 +101,14 @@ export async function POST(request: Request) {
       });
     }
 
+    const driveFileId = driveResponse?.data?.id;
+    if (!driveFileId) {
+      throw new Error('Failed to get file ID from Google Drive response');
+    }
+
     return NextResponse.json({
       success: true,
-      driveFileId: driveResponse.data.id,
+      driveFileId: driveFileId,
       message: 'Successfully saved to Drive, Sheets and Telegram'
     });
 

@@ -139,9 +139,14 @@ export default function SRTEditorMaster() {
         },
       });
 
-      const result = await response.json();
+      let result;
+      try {
+        result = await response.json();
+      } catch (parseError) {
+        throw new Error("Failed to parse server response. The server might be down or returned an invalid format.");
+      }
 
-      if (result.success) {
+      if (result && result.success) {
         alert("အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ!");
         // Reset form
         setTitle('');
