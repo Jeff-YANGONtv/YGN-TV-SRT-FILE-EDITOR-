@@ -1,63 +1,52 @@
 "use client";
 import React, { useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Loader2, Lock, Mail, User, ShieldPlus } from 'lucide-react';
+import { Loader2, Lock, Mail, ShieldCheck } from 'lucide-react';
 
-export default function RegisterPage() {
+export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
-  const handleRegister = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setErrorMsg('');
 
-    // ✅ Supabase Real Registration Logic
-    const { data, error } = await supabase.auth.signUp({
-      email: email,
-      password: password,
-      options: {
-        data: {
-          full_name: fullName,
-        }
-      }
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
     });
 
     if (error) {
       setErrorMsg(error.message);
       setLoading(false);
     } else {
-      alert("Account ဖွင့်တာ အောင်မြင်ပါတယ်။ Email ထဲမှာ Confirm လုပ်ပေးပါ အစ်ကို။");
-      window.location.href = '/login';
+      window.location.href = '/edit/new';
     }
   };
 
   return (
     <div className="min-h-screen bg-[#0b0d11] flex items-center justify-center p-6 text-white overflow-hidden">
-      {/* Glow Effects */}
-      <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-600/10 blur-[120px] rounded-full" />
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 blur-[120px] rounded-full" />
 
       <main className="w-full max-w-sm space-y-8 animate-fade-in relative z-10">
-        
         <div className="text-center space-y-3">
           <div className="w-20 h-20 bg-blue-600/10 border border-blue-500/20 rounded-[2.5rem] flex items-center justify-center mx-auto shadow-2xl shadow-blue-600/10">
-            <ShieldPlus className="text-blue-500" size={36} />
+            <ShieldCheck className="text-blue-500" size={36} />
           </div>
           <div>
             <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none">
-              Join The <span className="text-blue-500">Lab</span>
+              Welcome <span className="text-blue-500">Back</span>
             </h1>
             <p className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.3em] mt-2 italic">
-              Create Team Member Account
+              Login to Production Lab
             </p>
           </div>
         </div>
 
-        <form onSubmit={handleRegister} className="space-y-4">
-          
+        <form onSubmit={handleLogin} className="space-y-4">
           {errorMsg && (
             <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-2xl text-[11px] text-red-400 font-bold text-center">
               {errorMsg}
@@ -65,20 +54,6 @@ export default function RegisterPage() {
           )}
 
           <div className="space-y-4">
-             {/* Name Field */}
-             <div className="relative group">
-              <User className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-500 transition-colors" size={18} />
-              <input 
-                type="text" 
-                required
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="Full Name (Zin Ko Ko Lwin)" 
-                className="w-full bg-white/[0.03] border border-white/5 rounded-[1.5rem] p-5 pl-14 outline-none focus:border-blue-600 focus:bg-white/[0.05] transition-all font-medium text-sm"
-              />
-            </div>
-
-            {/* Email Field */}
             <div className="relative group">
               <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-500 transition-colors" size={18} />
               <input 
@@ -91,16 +66,14 @@ export default function RegisterPage() {
               />
             </div>
 
-            {/* Password Field */}
             <div className="relative group">
               <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-500 transition-colors" size={18} />
               <input 
                 type="password" 
                 required
-                minLength={6}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Set Secure Password" 
+                placeholder="Password" 
                 className="w-full bg-white/[0.03] border border-white/5 rounded-[1.5rem] p-5 pl-14 outline-none focus:border-blue-600 focus:bg-white/[0.05] transition-all font-medium text-sm"
               />
             </div>
@@ -112,16 +85,15 @@ export default function RegisterPage() {
             className="w-full py-5 bg-blue-600 hover:bg-blue-500 rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-blue-600/20 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
           >
             {loading ? <Loader2 className="animate-spin" size={18} /> : null}
-            {loading ? "Creating..." : "Register Account"}
+            {loading ? "Authenticating..." : "Login to Lab"}
           </button>
         </form>
 
         <div className="text-center">
-            <a href="/login" className="text-[10px] font-black text-slate-500 uppercase tracking-widest hover:text-blue-500 transition">
-                Already have an account? Log In
+            <a href="/" className="text-[10px] font-black text-slate-500 uppercase tracking-widest hover:text-blue-500 transition">
+                Don't have an account? Register Now
             </a>
         </div>
-
       </main>
     </div>
   );

@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseUrl = 'https://ptrdrgetdfavyxucqazj.supabase.co';
+const supabaseAnonKey = 'sb_publishable_ubneT3S5U4khidmHdvuv4A_qBHAN6CQ';
 
 // Supabase Client ကို Initialize လုပ်ခြင်း
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);

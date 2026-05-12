@@ -1,7 +1,8 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import Sidebar from '@/components/ui/Sidebar';
-import { Menu, Camera, LogOut, Loader2 } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+import { Menu, Camera, LogOut, Loader2, User } from 'lucide-react';
 
 // Google Apps Script URL for fetching history data
 const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyiU7Z_rbs_LN5iz8rEGs8FI8AJi5ckGXsmykFW2c9nczFqZ8HQVtUBhNwq68LOIe44_w/exec';
@@ -10,11 +11,29 @@ export default function ProfilePage() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [stats, setStats] = useState({ movie: 0, series: 0 });
   const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
 
   const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
 
-  // ⭐ Google Apps Script ကနေ Movie နဲ့ Series အရေအတွက်ကို Live တွက်ချက်ခြင်း
   useEffect(() => {
+    async function getProfile() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUser(user);
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+        
+        if (profileData) {
+          setProfile(profileData);
+        }
+      }
+    }
+    getProfile();
+
     async function fetchStats() {
       setIsLoading(true);
       try {
@@ -34,6 +53,11 @@ export default function ProfilePage() {
     }
     fetchStats();
   }, []);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    window.location.href = '/login';
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-[#0b0d11] text-white">
@@ -55,7 +79,7 @@ export default function ProfilePage() {
         </div>
 
         <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-blue-600/40 p-0.5">
-          <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Zin" alt="Profile" className="w-full h-full rounded-full" />
+          <img src={profile?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.id || 'Zin'}`} alt="Profile" className="w-full h-full rounded-full" />
         </div>
       </header>
 
@@ -86,16 +110,16 @@ export default function ProfilePage() {
         <div className="text-center space-y-4 pt-4">
           <div className="relative inline-block">
             <div className="w-28 h-28 rounded-full border-4 border-blue-600/30 p-1 bg-slate-800">
-              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Zin" alt="Zin" className="w-full h-full rounded-full" />
+              <img src={profile?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.id || 'Zin'}`} alt="Avatar" className="w-full h-full rounded-full" />
             </div>
             <button className="absolute bottom-1 right-1 bg-blue-600 w-8 h-8 rounded-full border-4 border-[#0b0d11] flex items-center justify-center text-xs">
               <Camera size={14} />
             </button>
           </div>
           <div>
-            <h2 className="text-2xl font-black italic tracking-tighter uppercase">Zin KO KO Lwin</h2>
+            <h2 className="text-2xl font-black italic tracking-tighter uppercase">{profile?.full_name || user?.email?.split('@')[0] || 'Member'}</h2>
             <p className="text-[9px] font-bold text-blue-500 tracking-widest uppercase px-4 py-1.5 bg-blue-500/10 rounded-full inline-block border border-blue-500/10 mt-2">
-              SME Founder / Admin
+              {profile?.role || 'Team Member'}
             </p>
           </div>
         </div>
@@ -103,22 +127,25 @@ export default function ProfilePage() {
         {/* Settings Form */}
         <div className="space-y-4 pt-4">
           <div className="space-y-1">
-            <label className="text-[10px] font-black text-slate-600 uppercase ml-4 tracking-widest">Display Name</label>
-            <input type="text" defaultValue="Zin KO KO Lwin" className="w-full bg-white/5 border border-white/10 rounded-[1.5rem] p-4 outline-none focus:border-blue-500 font-bold text-sm text-slate-200" />
+            <label className="text-[10px] font-black text-slate-600 uppercase ml-4 tracking-widest">Email Address</label>
+            <input type="text" value={user?.email || ''} disabled className="w-full bg-white/5 border border-white/10 rounded-[1.5rem] p-4 outline-none font-bold text-sm text-slate-500" />
           </div>
           <div className="space-y-1">
-            <label className="text-[10px] font-black text-slate-600 uppercase ml-4 tracking-widest">New Password</label>
-            <input type="password" placeholder="••••••••" className="w-full bg-white/5 border border-white/10 rounded-[1.5rem] p-4 outline-none focus:border-blue-500 text-sm text-slate-200" />
+            <label className="text-[10px] font-black text-slate-600 uppercase ml-4 tracking-widest">Full Name</label>
+            <input type="text" defaultValue={profile?.full_name || ''} className="w-full bg-white/5 border border-white/10 rounded-[1.5rem] p-4 outline-none focus:border-blue-500 font-bold text-sm text-slate-200" />
           </div>
           
           <button className="w-full py-5 bg-blue-600 hover:bg-blue-500 rounded-[2rem] font-black text-xs uppercase tracking-widest shadow-xl shadow-blue-600/20 active:scale-95 transition-all mt-4">
-            Update Settings
+            Update Profile
           </button>
         </div>
 
         {/* Sign Out Section */}
         <div className="pt-6">
-            <button className="w-full py-4 bg-red-600/5 text-red-500 border border-red-500/10 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all flex items-center justify-center gap-2">
+            <button 
+              onClick={handleSignOut}
+              className="w-full py-4 bg-red-600/5 text-red-500 border border-red-500/10 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all flex items-center justify-center gap-2"
+            >
                 <LogOut size={14} /> Sign Out Account
             </button>
         </div>
