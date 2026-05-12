@@ -54,6 +54,7 @@ export default function EditProjectPage() {
   const [videoUrl, setVideoUrl] = useState('');
   const [videoUrlInput, setVideoUrlInput] = useState('');
   const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
 
   const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
 
