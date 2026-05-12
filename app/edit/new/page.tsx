@@ -156,7 +156,7 @@ export default function SRTEditorMaster() {
         {(videoUrl || videoFile) && (
           <div className="space-y-2 animate-fade-in">
             <label className="text-[10px] font-black text-slate-600 uppercase ml-4 tracking-widest">Video Preview</label>
-            <VideoPlayer videoUrl={videoUrl} videoFile={videoFile} subtitles={subtitles} />
+                  <VideoPlayer videoUrl={videoUrl} videoFile={videoFile} subtitles={subtitles as any} />
           </div>
         )}
 

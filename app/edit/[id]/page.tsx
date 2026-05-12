@@ -11,6 +11,8 @@ interface Subtitle {
   id: number;
   time: string;
   text: string;
+  startTime: string;
+  endTime: string;
 }
 
 export default function EditProjectPage() {
@@ -61,14 +63,14 @@ export default function EditProjectPage() {
       const parsed = parseSRTContent(content);
       // Map back to the local interface if needed, but here we can just use the parsed format
       // If the local interface 'Subtitle' only has 'time' instead of 'startTime/endTime', we adapt it
-      const adapted = parsed.map(s => ({
+      const adapted: Subtitle[] = parsed.map(s => ({
         id: s.id,
         time: `${s.startTime} --> ${s.endTime}`,
         text: s.text,
         startTime: s.startTime,
         endTime: s.endTime
       }));
-      setSubtitles(adapted as any);
+      setSubtitles(adapted);
     } catch (e) {
       console.error("Parse error:", e);
     }
@@ -79,7 +81,7 @@ export default function EditProjectPage() {
     setIsSyncing(true);
 
     // Use the robust utility for conversion
-    const srtText = subtitlesToSRTString(subtitles as any);
+    const srtText = subtitlesToSRTString(subtitles);
     const fileName = `${Date.now()}_edited_${title.replace(/\s+/g, '_')}.srt`;
     const fileBody = new Blob([srtText], { type: 'text/plain' });
 
@@ -154,7 +156,7 @@ export default function EditProjectPage() {
               {(videoUrl || videoFile) && (
                 <div className="space-y-2 animate-fade-in">
                   <label className="text-[10px] font-black text-slate-600 uppercase ml-4 tracking-widest">Video Preview</label>
-                  <VideoPlayer videoUrl={videoUrl} videoFile={videoFile} subtitles={subtitles} />
+                  <VideoPlayer videoUrl={videoUrl} videoFile={videoFile} subtitles={subtitles as any} />
                 </div>
               )}
 
