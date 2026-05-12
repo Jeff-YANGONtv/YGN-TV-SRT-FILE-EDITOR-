@@ -211,6 +211,7 @@ export default function SRTEditorMaster() {
             <div className="relative">
               <input
                 type="file"
+                id="video-upload"
                 accept="video/*"
                 onChange={(e) => {
                   if (e.target.files?.[0]) {
@@ -218,9 +219,12 @@ export default function SRTEditorMaster() {
                     setVideoUrl(''); // Clear URL if file is selected
                   }
                 }}
-                className="absolute inset-0 opacity-0 cursor-pointer"
+                className="hidden"
               />
-              <button className="w-full px-4 py-4 glass rounded-[1.2rem] text-[10px] font-black uppercase text-green-500 border border-green-500/10 hover:bg-green-600/10 transition flex items-center justify-center gap-2">
+              <button 
+                onClick={() => document.getElementById('video-upload')?.click()}
+                className="w-full px-4 py-4 glass rounded-[1.2rem] text-[10px] font-black uppercase text-green-500 border border-green-500/10 hover:bg-green-600/10 transition flex items-center justify-center gap-2"
+              >
                 <FileUp size={14} /> Upload Local
               </button>
             </div>

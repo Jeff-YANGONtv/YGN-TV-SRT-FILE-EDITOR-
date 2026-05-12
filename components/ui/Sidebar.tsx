@@ -3,6 +3,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { File as FileEdit, UserCog, LogOut, X, MonitorPlay } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -68,11 +69,16 @@ export default function Sidebar({ isOpen, toggleMenu }: SidebarProps) {
         </nav>
 
         <div className="pt-6 border-t border-white/5">
-          <Link href="/" onClick={toggleMenu}>
-            <button className="w-full flex items-center gap-4 p-4 rounded-2xl text-red-400 font-black text-xs uppercase tracking-[0.2em] hover:bg-red-500/10 transition border border-transparent hover:border-red-500/15">
-              <LogOut size={18} /> Sign Out
-            </button>
-          </Link>
+          <button 
+            onClick={async () => {
+              await supabase.auth.signOut();
+              window.location.href = '/login';
+              toggleMenu();
+            }}
+            className="w-full flex items-center gap-4 p-4 rounded-2xl text-red-400 font-black text-xs uppercase tracking-[0.2em] hover:bg-red-500/10 transition border border-transparent hover:border-red-500/15"
+          >
+            <LogOut size={18} /> Sign Out
+          </button>
         </div>
       </aside>
     </>
