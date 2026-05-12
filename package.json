@@ -2,6 +2,7 @@
   "name": "yangon-tv-production-lab",
   "version": "1.0.0",
   "private": true,
+  "description": "Premium Subtitle Editing & QC Management System for Yangon TV",
   "scripts": {
     "dev": "next dev",
     "build": "next build || exit 0",
@@ -24,6 +25,9 @@
     "react-dom": "^18.2.0",
     "tailwind-merge": "^2.2.2",
     "wavesurfer.js": "^7.7.7"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.12.2",
