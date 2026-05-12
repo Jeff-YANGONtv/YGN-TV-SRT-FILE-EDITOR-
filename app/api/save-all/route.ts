@@ -44,10 +44,17 @@ export async function POST(request: Request) {
     const fileName = `${finalTitle}.srt`;
 
     // ၂။ Google Auth Setup
+    // Handle private key formatting (newlines and quotes)
+    let privateKey = process.env.GOOGLE_PRIVATE_KEY || '';
+    if (privateKey.startsWith('"') && privateKey.endsWith('"')) {
+      privateKey = privateKey.substring(1, privateKey.length - 1);
+    }
+    privateKey = privateKey.replace(/\\n/g, '\n');
+
     const auth = new google.auth.JWT(
       process.env.GOOGLE_CLIENT_EMAIL,
       undefined,
-      process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      privateKey,
       ['https://www.googleapis.com/auth/drive', 'https://www.googleapis.com/auth/spreadsheets']
     );
 

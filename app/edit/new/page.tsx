@@ -122,7 +122,7 @@ export default function SRTEditorMaster() {
       // Prepare JSON payload
       const payload = {
         srtContent: srtContent,
-        editorName: "Zin KO KO Lwin",
+        editorName: "Editor", // You can update this to dynamic user name if available
         movieTitle: title,
         season: metaType === 'series' ? season : null,
         episode: metaType === 'series' ? episode : null,
