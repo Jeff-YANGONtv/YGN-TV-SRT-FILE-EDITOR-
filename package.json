@@ -5,7 +5,7 @@
   "description": "Premium Subtitle Editing & QC Management System for Yangon TV",
   "scripts": {
     "dev": "next dev",
-    "build": "next build || exit 0",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },

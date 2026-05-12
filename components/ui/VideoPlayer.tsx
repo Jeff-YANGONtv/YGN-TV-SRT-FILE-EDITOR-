@@ -11,7 +11,7 @@ interface Subtitle {
 
 interface VideoPlayerProps {
   videoUrl?: string;
-  videoFile?: File | Blob;
+  videoFile?: File | Blob | null;
   subtitles: Subtitle[];
   onTimeUpdate?: (currentTime: number) => void;
 }
