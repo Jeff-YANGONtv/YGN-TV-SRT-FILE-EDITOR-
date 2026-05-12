@@ -186,7 +186,7 @@ export default function SRTEditorMaster() {
             </div>
           )) : (
             <div className="text-center py-20 opacity-20">
-                <i class="fa-solid fa-keyboard text-4xl mb-4"></i>
+                <i className="fa-solid fa-keyboard text-4xl mb-4"></i>
                 <p className="text-[10px] font-black uppercase tracking-widest">No Subtitles Loaded</p>
             </div>
           )}

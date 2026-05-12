@@ -1,2 +1,19 @@
 node_modules/
 .env
+
+# Python
+__pycache__/
+*.pyc
+
+# macOS
+.DS_Store
+
+# Editor/IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Misc
+.cache/
