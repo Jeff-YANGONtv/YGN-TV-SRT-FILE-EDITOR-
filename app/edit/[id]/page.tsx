@@ -5,6 +5,7 @@ import { VideoPlayer } from '@/components/ui/VideoPlayer';
 import { Menu, Save, Loader2, ArrowLeft, Link as LinkIcon } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useParams, useRouter } from 'next/navigation';
+import { parseSRTContent, subtitlesToSRTString } from '@/lib/srtParser';
 
 interface Subtitle {
   id: number;
@@ -55,22 +56,29 @@ export default function EditProjectPage() {
   }, [projectId]);
 
   const parseSRT = (content: string) => {
-    const blocks = content.trim().split(/\n\s*\n/);
-    const parsed = blocks.map((b, i) => {
-      const lines = b.trim().split('\n');
-      if (lines.length >= 3) {
-        return { id: i + 1, time: lines[1], text: lines.slice(2).join('\n') };
-      }
-      return null;
-    }).filter((s): s is Subtitle => s !== null);
-    setSubtitles(parsed);
+    try {
+      const parsed = parseSRTContent(content);
+      // Map back to the local interface if needed, but here we can just use the parsed format
+      // If the local interface 'Subtitle' only has 'time' instead of 'startTime/endTime', we adapt it
+      const adapted = parsed.map(s => ({
+        id: s.id,
+        time: `${s.startTime} --> ${s.endTime}`,
+        text: s.text,
+        startTime: s.startTime,
+        endTime: s.endTime
+      }));
+      setSubtitles(adapted as any);
+    } catch (e) {
+      console.error("Parse error:", e);
+    }
   };
 
   const updateProject = async () => {
     if (!title || subtitles.length === 0) return alert("Data အစုံအလင်မရှိပါ!");
     setIsSyncing(true);
 
-    const srtText = subtitles.map(s => `${s.id}\n${s.time}\n${s.text}\n\n`).join('');
+    // Use the robust utility for conversion
+    const srtText = subtitlesToSRTString(subtitles as any);
     const fileName = `${Date.now()}_edited_${title.replace(/\s+/g, '_')}.srt`;
     const fileBody = new Blob([srtText], { type: 'text/plain' });
 
