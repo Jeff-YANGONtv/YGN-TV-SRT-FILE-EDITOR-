@@ -55,7 +55,7 @@ export default function RegisterPage() {
           </div>
           <div>
             <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none">
-              Join Our  <span className="text-blue-500">Production Lab</span>
+              YGNTV <span className="text-blue-500">Production Lab</span>
             </h1>
             <p className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.3em] mt-2 italic">
               Create Team Member Account
