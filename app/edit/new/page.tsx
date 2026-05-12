@@ -81,17 +81,14 @@ export default function SRTEditorMaster() {
         episode: metaType === 'series' ? episode : null,
       };
 
-      // Send to Google Apps Script
-      const response = await fetch(
-        'https://script.google.com/macros/s/AKfycbyiU7Z_rbs_LN5iz8rEGs8FI8AJi5ckGXsmykFW2c9nczFqZ8HQVtUBhNwq68LOIe44_w/exec',
-        {
-          method: 'POST',
-          body: JSON.stringify(payload),
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      // Send to our internal API that handles Drive, Sheets, and Telegram
+      const response = await fetch('/api/save-all', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
       const result = await response.json();
 

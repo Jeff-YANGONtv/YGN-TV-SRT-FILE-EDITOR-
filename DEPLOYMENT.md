@@ -17,6 +17,16 @@ The project uses the following environment variables:
 ```
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# Google API Credentials
+GOOGLE_CLIENT_EMAIL=your_service_account_email
+GOOGLE_PRIVATE_KEY="your_private_key_here"
+GOOGLE_DRIVE_FOLDER_ID=your_folder_id
+GOOGLE_SHEET_ID=your_spreadsheet_id
+
+# Telegram Credentials
+TELEGRAM_BOT_TOKEN=your_bot_token
+TELEGRAM_CHANNEL_ID=your_channel_id
 ```
 
 **Note:** These are public variables (prefixed with `NEXT_PUBLIC_`) and are safe to expose in the browser.
