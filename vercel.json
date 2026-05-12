@@ -3,7 +3,7 @@
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "framework": "nextjs",
-  "nodeVersion": "22.x",
+  "nodeVersion": "20.x",
   "env": {
     "NEXT_PUBLIC_SUPABASE_URL": {
       "description": "Your Supabase project URL"
