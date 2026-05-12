@@ -22,6 +22,7 @@ export default function SRTEditorMaster() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [videoUrl, setVideoUrl] = useState('');
   const [videoUrlInput, setVideoUrlInput] = useState('');
+  const [videoFile, setVideoFile] = useState<File | null>(null);
 
   const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
 
@@ -83,6 +84,7 @@ export default function SRTEditorMaster() {
         season: metaType === 'series' ? season : null,
         episode: metaType === 'series' ? episode : null,
         videoUrl: videoUrl || null,
+        // Note: Local files are not persisted to database, only URLs are stored
       };
 
       // Send to our internal API that handles Drive, Sheets, and Telegram
@@ -151,35 +153,57 @@ export default function SRTEditorMaster() {
         </div>
 
         {/* Video Player Section */}
-        {videoUrl && (
+        {(videoUrl || videoFile) && (
           <div className="space-y-2 animate-fade-in">
             <label className="text-[10px] font-black text-slate-600 uppercase ml-4 tracking-widest">Video Preview</label>
-            <VideoPlayer videoUrl={videoUrl} subtitles={subtitles} />
+            <VideoPlayer videoUrl={videoUrl} videoFile={videoFile} subtitles={subtitles} />
           </div>
         )}
 
-        {/* Video URL Input */}
+        {/* Video Input Section */}
         <div className="space-y-2">
-          <label className="text-[10px] font-black text-slate-600 uppercase ml-4 tracking-widest">Video URL (Optional)</label>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={videoUrlInput}
-              onChange={(e) => setVideoUrlInput(e.target.value)}
-              placeholder="Paste video URL here..."
-              className="flex-1 bg-white/5 border border-white/10 rounded-[1.2rem] p-4 outline-none focus:border-blue-500 italic font-medium text-sm"
-            />
-            <button
-              onClick={() => {
-                if (videoUrlInput.trim()) {
-                  setVideoUrl(videoUrlInput.trim());
-                  setVideoUrlInput('');
-                }
-              }}
-              className="px-6 py-4 glass rounded-[1.2rem] text-[10px] font-black uppercase text-blue-500 border border-blue-500/10 hover:bg-blue-600/10 transition flex items-center gap-2"
-            >
-              <LinkIcon size={14} /> Add
-            </button>
+          <label className="text-[10px] font-black text-slate-600 uppercase ml-4 tracking-widest">Video File (Optional)</label>
+          <div className="grid grid-cols-2 gap-2">
+            {/* File Upload */}
+            <div className="relative">
+              <input
+                type="file"
+                accept="video/*"
+                onChange={(e) => {
+                  if (e.target.files?.[0]) {
+                    setVideoFile(e.target.files[0]);
+                    setVideoUrl(''); // Clear URL if file is selected
+                  }
+                }}
+                className="absolute inset-0 opacity-0 cursor-pointer"
+              />
+              <button className="w-full px-4 py-4 glass rounded-[1.2rem] text-[10px] font-black uppercase text-green-500 border border-green-500/10 hover:bg-green-600/10 transition flex items-center justify-center gap-2">
+                <FileUp size={14} /> Upload Local
+              </button>
+            </div>
+            {/* URL Input */}
+            <div className="relative">
+              <input
+                type="text"
+                value={videoUrlInput}
+                onChange={(e) => setVideoUrlInput(e.target.value)}
+                placeholder="Or paste URL..."
+                className="w-full bg-white/5 border border-white/10 rounded-[1.2rem] p-4 outline-none focus:border-blue-500 italic font-medium text-sm"
+              />
+              <button
+                onClick={() => {
+                  if (videoUrlInput.trim()) {
+                    setVideoUrl(videoUrlInput.trim());
+                    setVideoUrlInput('');
+                    setVideoFile(null); // Clear file if URL is selected
+                  }
+                }}
+                className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-2 text-blue-500 hover:text-blue-400 transition"
+                title="Add URL"
+              >
+                <LinkIcon size={16} />
+              </button>
+            </div>
           </div>
         </div>
 

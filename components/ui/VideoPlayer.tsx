@@ -11,6 +11,7 @@ interface Subtitle {
 
 interface VideoPlayerProps {
   videoUrl?: string;
+  videoFile?: File | Blob;
   subtitles: Subtitle[];
   onTimeUpdate?: (currentTime: number) => void;
 }
@@ -26,9 +27,20 @@ const timeToSeconds = (timeStr: string): number => {
 
 export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   videoUrl,
+  videoFile,
   subtitles,
   onTimeUpdate,
 }) => {
+  const [videoObjectUrl, setVideoObjectUrl] = React.useState<string | null>(null);
+
+  // Create object URL from file if provided
+  React.useEffect(() => {
+    if (videoFile) {
+      const url = URL.createObjectURL(videoFile);
+      setVideoObjectUrl(url);
+      return () => URL.revokeObjectURL(url);
+    }
+  }, [videoFile]);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -111,21 +123,28 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  if (!videoUrl) {
+  const finalVideoUrl = videoObjectUrl || videoUrl;
+
+  if (!finalVideoUrl) {
     return (
       <div className="w-full bg-black/50 rounded-[1.5rem] border border-white/10 p-8 text-center">
-        <p className="text-slate-400 text-sm font-medium">No video URL provided</p>
+        <p className="text-slate-400 text-sm font-medium">No video provided</p>
       </div>
     );
   }
 
   return (
     <div className="w-full space-y-4">
+      {videoFile && (
+        <div className="text-[9px] font-bold text-blue-500 bg-blue-500/10 px-3 py-2 rounded-lg">
+          📁 {videoFile instanceof File ? videoFile.name : 'Local Video'}
+        </div>
+      )}
       {/* Video Container */}
       <div className="relative bg-black rounded-[1.5rem] overflow-hidden border border-white/10">
         <video
           ref={videoRef}
-          src={videoUrl}
+          src={finalVideoUrl}
           className="w-full h-auto"
           crossOrigin="anonymous"
         />
