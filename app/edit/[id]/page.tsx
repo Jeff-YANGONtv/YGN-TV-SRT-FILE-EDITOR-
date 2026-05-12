@@ -1,7 +1,8 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import Sidebar from '@/components/ui/Sidebar';
-import { Menu, Save, Loader2, ArrowLeft } from 'lucide-react';
+import { VideoPlayer } from '@/components/ui/VideoPlayer';
+import { Menu, Save, Loader2, ArrowLeft, Link as LinkIcon } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useParams, useRouter } from 'next/navigation';
 
@@ -21,6 +22,8 @@ export default function EditProjectPage() {
   const [subtitles, setSubtitles] = useState<Subtitle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [videoUrl, setVideoUrl] = useState('');
+  const [videoUrlInput, setVideoUrlInput] = useState('');
 
   const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
 
@@ -35,6 +38,9 @@ export default function EditProjectPage() {
 
       if (data && !error) {
         setTitle(data.title);
+        if (data.video_url) {
+          setVideoUrl(data.video_url);
+        }
         try {
           const res = await fetch(data.download_url);
           const srtText = await res.text();
@@ -83,7 +89,8 @@ export default function EditProjectPage() {
         .from('history')
         .update({ 
           title: title, 
-          download_url: publicUrl 
+          download_url: publicUrl,
+          video_url: videoUrl || null
         })
         .eq('id', projectId);
 
@@ -133,32 +140,68 @@ export default function EditProjectPage() {
                 />
             </div>
 
-            <div className="space-y-4">
-              {subtitles.map((sub, idx) => (
-                <div key={sub.id} className="bg-white/[0.03] p-6 rounded-[2rem] border border-white/5 animate-fade-in">
-                  <div className="flex justify-between text-[9px] font-black text-blue-500 mb-3 uppercase tracking-widest">
-                    <span>Line #{sub.id}</span>
-                    <span className="font-mono text-slate-500">{sub.time}</span>
-                  </div>
-                  <textarea 
-                    value={sub.text} 
-                    onChange={e => {
-                      const newSubs = [...subtitles];
-                      newSubs[idx].text = e.target.value;
-                      setSubtitles(newSubs);
-                    }}
-                    className="w-full bg-transparent outline-none text-slate-200 text-sm resize-none font-medium leading-relaxed" 
-                    rows={2} 
-                  />
+            <div className="space-y-6">
+              {/* Video Player Section */}
+              {videoUrl && (
+                <div className="space-y-2 animate-fade-in">
+                  <label className="text-[10px] font-black text-slate-600 uppercase ml-4 tracking-widest">Video Preview</label>
+                  <VideoPlayer videoUrl={videoUrl} subtitles={subtitles} />
                 </div>
-              ))}
+              )}
+
+              {/* Video URL Input */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-600 uppercase ml-4 tracking-widest">Video URL (Optional)</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={videoUrlInput}
+                    onChange={(e) => setVideoUrlInput(e.target.value)}
+                    placeholder="Paste video URL here..."
+                    className="flex-1 bg-white/5 border border-white/10 rounded-[1.2rem] p-4 outline-none focus:border-blue-500 italic font-medium text-sm"
+                  />
+                  <button
+                    onClick={() => {
+                      if (videoUrlInput.trim()) {
+                        setVideoUrl(videoUrlInput.trim());
+                        setVideoUrlInput('');
+                      }
+                    }}
+                    className="px-6 py-4 glass rounded-[1.2rem] text-[10px] font-black uppercase text-blue-500 border border-blue-500/10 hover:bg-blue-600/10 transition flex items-center gap-2"
+                  >
+                    <LinkIcon size={14} /> Add
+                  </button>
+                </div>
+              </div>
+
+              {/* Subtitles List */}
+              <div className="space-y-4">
+                {subtitles.map((sub, idx) => (
+                  <div key={sub.id} className="bg-white/[0.03] p-6 rounded-[2rem] border border-white/5 animate-fade-in">
+                    <div className="flex justify-between text-[9px] font-black text-blue-500 mb-3 uppercase tracking-widest">
+                      <span>Line #{sub.id}</span>
+                      <span className="font-mono text-slate-500">{sub.time}</span>
+                    </div>
+                    <textarea 
+                      value={sub.text} 
+                      onChange={e => {
+                        const newSubs = [...subtitles];
+                        newSubs[idx].text = e.target.value;
+                        setSubtitles(newSubs);
+                      }}
+                      className="w-full bg-transparent outline-none text-slate-200 text-sm resize-none font-medium leading-relaxed" 
+                      rows={2} 
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
       </main>
 
       {!isLoading && (
-        <div className="fixed bottom-0 inset-x-0 p-6 bg-gradient-to-t from-[#0b0d11] via-[#0b0d11] to-transparent z-40">
+        <div className="fixed bottom-0 inset-x-0 p-6 bg-gradient-to-t from-[#0b0d11] via-[#0b0d11] to-transparent z-50 md:z-40" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 5rem)' }}>
           <button 
             onClick={updateProject}
             disabled={isSyncing}

@@ -1,7 +1,8 @@
 "use client";
 import React, { useState } from 'react';
 import Sidebar from '@/components/ui/Sidebar';
-import { Menu, FileUp, Eraser, Clock, Save, Loader2, History } from 'lucide-react';
+import { VideoPlayer } from '@/components/ui/VideoPlayer';
+import { Menu, FileUp, Eraser, Clock, Save, Loader2, History, Link as LinkIcon } from 'lucide-react';
 import { parseSRTContent, subtitlesToSRTString } from '@/lib/srtParser';
 
 interface Subtitle {
@@ -19,6 +20,8 @@ export default function SRTEditorMaster() {
   const [episode, setEpisode] = useState('');
   const [subtitles, setSubtitles] = useState<Subtitle[]>([]); // အစမှာ Sample မထားတော့ပါ
   const [isSyncing, setIsSyncing] = useState(false);
+  const [videoUrl, setVideoUrl] = useState('');
+  const [videoUrlInput, setVideoUrlInput] = useState('');
 
   const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
 
@@ -79,6 +82,7 @@ export default function SRTEditorMaster() {
         movieTitle: title,
         season: metaType === 'series' ? season : null,
         episode: metaType === 'series' ? episode : null,
+        videoUrl: videoUrl || null,
       };
 
       // Send to our internal API that handles Drive, Sheets, and Telegram
@@ -146,6 +150,39 @@ export default function SRTEditorMaster() {
           )}
         </div>
 
+        {/* Video Player Section */}
+        {videoUrl && (
+          <div className="space-y-2 animate-fade-in">
+            <label className="text-[10px] font-black text-slate-600 uppercase ml-4 tracking-widest">Video Preview</label>
+            <VideoPlayer videoUrl={videoUrl} subtitles={subtitles} />
+          </div>
+        )}
+
+        {/* Video URL Input */}
+        <div className="space-y-2">
+          <label className="text-[10px] font-black text-slate-600 uppercase ml-4 tracking-widest">Video URL (Optional)</label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={videoUrlInput}
+              onChange={(e) => setVideoUrlInput(e.target.value)}
+              placeholder="Paste video URL here..."
+              className="flex-1 bg-white/5 border border-white/10 rounded-[1.2rem] p-4 outline-none focus:border-blue-500 italic font-medium text-sm"
+            />
+            <button
+              onClick={() => {
+                if (videoUrlInput.trim()) {
+                  setVideoUrl(videoUrlInput.trim());
+                  setVideoUrlInput('');
+                }
+              }}
+              className="px-6 py-4 glass rounded-[1.2rem] text-[10px] font-black uppercase text-blue-500 border border-blue-500/10 hover:bg-blue-600/10 transition flex items-center gap-2"
+            >
+              <LinkIcon size={14} /> Add
+            </button>
+          </div>
+        </div>
+
         {/* Tools */}
         <div className="flex gap-3">
           <button onClick={clearBlankLines} className="flex-1 py-4 glass rounded-[1.5rem] text-[10px] font-black uppercase text-red-500 border border-red-500/10 hover:bg-red-500/10 transition flex items-center justify-center gap-2">
@@ -191,7 +228,7 @@ export default function SRTEditorMaster() {
       </main>
 
       {/* Fixed Save Button */}
-      <div className="fixed bottom-0 inset-x-0 p-6 bg-gradient-to-t from-[#0b0d11] via-[#0b0d11] to-transparent z-40">
+      <div className="fixed bottom-0 inset-x-0 p-6 bg-gradient-to-t from-[#0b0d11] via-[#0b0d11] to-transparent z-50 md:z-40" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 5rem)' }}>
         <button 
           onClick={saveToGoogleAppsScript}
           disabled={isSyncing}
