@@ -1,14 +1,9 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import Sidebar from '@/components/ui/Sidebar';
-import { Menu, Eraser, Save, Loader2, ArrowLeft } from 'lucide-react';
-import { createClient } from '@supabase/supabase-js';
+import { Menu, Save, Loader2, ArrowLeft } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 import { useParams, useRouter } from 'next/navigation';
-
-const supabase = createClient(
-  "https://jrgehklgjajjiwjtzrzk.supabase.co",
-  "sb_publishable_anDWJPy4dk8B7AJFGCGUlw_5I-DTYBN"
-);
 
 interface Subtitle {
   id: number;
@@ -108,7 +103,6 @@ export default function EditProjectPage() {
     <div className="min-h-screen bg-[#0b0d11] text-white flex flex-col">
       <Sidebar isOpen={isSidebarOpen} toggleMenu={toggleSidebar} />
       
-      {/* --- VERCEL ERROR တက်တဲ့နေရာကို className နဲ့ ပြင်ထားပါတယ် --- */}
       <header className="p-5 flex justify-between items-center border-b border-white/5 sticky top-0 bg-[#0b0d11]/95 backdrop-blur-md z-40">
         <button onClick={() => router.push('/edit/new')} className="w-10 h-10 flex items-center justify-center rounded-xl glass active:scale-90 transition">
           <ArrowLeft size={20} className="text-slate-400" />
@@ -177,4 +171,4 @@ export default function EditProjectPage() {
       )}
     </div>
   );
-                  }
+}
