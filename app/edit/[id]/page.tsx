@@ -7,6 +7,33 @@ import { supabase } from '@/lib/supabase';
 import { useParams, useRouter } from 'next/navigation';
 import { parseSRTContent, subtitlesToSRTString } from '@/lib/srtParser';
 
+// Auth check hook
+const useAuthCheck = () => {
+  const router = useRouter();
+  const [isAuthed, setIsAuthed] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          router.push('/login');
+        } else {
+          setIsAuthed(true);
+        }
+      } catch (error) {
+        router.push('/login');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    checkAuth();
+  }, [router]);
+
+  return { isAuthed, isLoading };
+};
+
 interface Subtitle {
   id: number;
   time: string;
@@ -19,8 +46,7 @@ export default function EditProjectPage() {
   const params = useParams();
   const router = useRouter();
   const projectId = params.id;
-
-  const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const { isAuthed, isLoading: authLoading } = useAuthCheck();
   const [title, setTitle] = useState('');
   const [subtitles, setSubtitles] = useState<Subtitle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -116,6 +142,18 @@ export default function EditProjectPage() {
       setIsSyncing(false);
     }
   };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-[#0b0d11] text-white flex items-center justify-center">
+        <Loader2 className="animate-spin" size={40} />
+      </div>
+    );
+  }
+
+  if (!isAuthed) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-[#0b0d11] text-white flex flex-col">

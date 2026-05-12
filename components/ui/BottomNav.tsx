@@ -7,7 +7,8 @@ import { cn } from '@/lib/utils';
 
 export const BottomNav = () => {
   const pathname = usePathname();
-  const isAuthPage = pathname === '/';
+  // Hide BottomNav on auth pages (login, register)
+  const isAuthPage = pathname === '/' || pathname === '/login';
   if (isAuthPage) return null;
 
   const uniqueItems = [
@@ -16,22 +17,22 @@ export const BottomNav = () => {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-30 bg-[#0b0d11]/95 backdrop-blur-xl border-t border-white/8 md:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
-      <div className="flex justify-around items-center h-16 px-2">
+    <nav className="fixed bottom-0 left-0 right-0 z-30 bg-[#0b0d11]/95 backdrop-blur-xl border-t border-white/8 md:hidden" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 0px)' }}>
+      <div className="flex justify-around items-center h-16 px-2 max-w-xl mx-auto w-full">
         {uniqueItems.map((item) => {
           const Icon = item.icon;
-          const isActive = pathname === item.href || (item.href !== '/edit/new' && pathname.startsWith(item.href));
+          const isActive = pathname === item.href || (item.href === '/profile' && pathname.startsWith(item.href));
 
           return (
-            <Link key={item.name} href={item.href} className="flex flex-col items-center gap-1 min-w-[64px] py-2">
+            <Link key={item.name} href={item.href} className="flex flex-col items-center gap-1 flex-1 py-2 justify-center">
               <div className={cn(
-                "p-2 rounded-xl transition-all duration-200",
+                "p-2.5 rounded-xl transition-all duration-200 flex items-center justify-center",
                 isActive ? "text-blue-500 bg-blue-500/10" : "text-slate-500 hover:text-slate-300"
               )}>
-                <Icon size={22} strokeWidth={isActive ? 2.5 : 1.8} />
+                <Icon size={24} strokeWidth={isActive ? 2.5 : 1.8} />
               </div>
               <span className={cn(
-                "text-[8px] font-black uppercase tracking-widest transition-colors",
+                "text-[7px] font-black uppercase tracking-widest transition-colors text-center",
                 isActive ? "text-blue-500" : "text-slate-600"
               )}>
                 {item.name}

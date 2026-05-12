@@ -1,9 +1,38 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from '@/components/ui/Sidebar';
 import { VideoPlayer } from '@/components/ui/VideoPlayer';
 import { Menu, FileUp, Eraser, Clock, Save, Loader2, History, Link as LinkIcon } from 'lucide-react';
 import { parseSRTContent, subtitlesToSRTString } from '@/lib/srtParser';
+import { supabase } from '@/lib/supabase';
+import { useRouter } from 'next/navigation';
+
+// Auth check hook
+const useAuthCheck = () => {
+  const router = useRouter();
+  const [isAuthed, setIsAuthed] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          router.push('/login');
+        } else {
+          setIsAuthed(true);
+        }
+      } catch (error) {
+        router.push('/login');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    checkAuth();
+  }, [router]);
+
+  return { isAuthed, isLoading };
+};
 
 interface Subtitle {
   id: number;
@@ -13,6 +42,8 @@ interface Subtitle {
 }
 
 export default function SRTEditorMaster() {
+  const router = useRouter();
+  const { isAuthed, isLoading: authLoading } = useAuthCheck();
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [metaType, setMetaType] = useState<'movie' | 'series'>('movie');
   const [title, setTitle] = useState('');
@@ -25,6 +56,18 @@ export default function SRTEditorMaster() {
   const [videoFile, setVideoFile] = useState<File | null>(null);
 
   const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-[#0b0d11] text-white flex items-center justify-center">
+        <Loader2 className="animate-spin" size={40} />
+      </div>
+    );
+  }
+
+  if (!isAuthed) {
+    return null;
+  }
 
   // ✅ 1. SRT File Upload Logic (Improved with robust parsing)
   const handleSRTUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
