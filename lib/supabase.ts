@@ -1,16 +1,21 @@
-import { createClient } from '@supabase/supabase-js';
+// This file is kept for backward compatibility
+// Please use lib/supabase/client.ts or lib/supabase/server.ts instead
 
-const supabaseUrl = 'https://ptrdrgetdfavyxucqazj.supabase.co';
-const supabaseAnonKey = 'sb_publishable_ubneT3S5U4khidmHdvuv4A_qBHAN6CQ';
-
-// Supabase Client ကို Initialize လုပ်ခြင်း
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export { createClient as createClientSupabase } from './supabase/client'
 
 /**
  * ဝန်ထမ်း (Editor) ရဲ့ လက်ရှိ Session ကို ရယူရန် Utility Function
+ * Note: This should be used in Server Components or API Routes
  */
 export const getCurrentUser = async () => {
-  const { data: { user }, error } = await supabase.auth.getUser();
-  if (error) return null;
-  return user;
-};
+  try {
+    const { createClient } = await import('./supabase/server')
+    const supabase = await createClient()
+    const { data: { user }, error } = await supabase.auth.getUser()
+    if (error) return null
+    return user
+  } catch (error) {
+    console.error('Error getting current user:', error)
+    return null
+  }
+}

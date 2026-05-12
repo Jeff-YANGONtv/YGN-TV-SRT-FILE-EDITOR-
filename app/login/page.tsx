@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/client';
 import { Loader2, Lock, Mail, ShieldCheck } from 'lucide-react';
 
 export default function LoginPage() {
@@ -14,16 +14,22 @@ export default function LoginPage() {
     setLoading(true);
     setErrorMsg('');
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    if (error) {
-      setErrorMsg(error.message);
+      if (error) {
+        setErrorMsg(error.message);
+        setLoading(false);
+      } else {
+        window.location.href = '/edit/new';
+      }
+    } catch (err) {
+      setErrorMsg('An unexpected error occurred');
       setLoading(false);
-    } else {
-      window.location.href = '/edit/new';
     }
   };
 

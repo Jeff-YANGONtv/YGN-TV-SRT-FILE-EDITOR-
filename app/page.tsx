@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/client';
 import { Loader2, Lock, Mail, User, ShieldPlus } from 'lucide-react';
 
 export default function RegisterPage() {
@@ -15,23 +15,30 @@ export default function RegisterPage() {
     setLoading(true);
     setErrorMsg('');
 
-    // ✅ Supabase Real Registration Logic
-    const { data, error } = await supabase.auth.signUp({
-      email: email,
-      password: password,
-      options: {
-        data: {
-          full_name: fullName,
+    try {
+      const supabase = createClient();
+      
+      // ✅ Supabase Real Registration Logic
+      const { data, error } = await supabase.auth.signUp({
+        email: email,
+        password: password,
+        options: {
+          data: {
+            full_name: fullName,
+          }
         }
-      }
-    });
+      });
 
-    if (error) {
-      setErrorMsg(error.message);
+      if (error) {
+        setErrorMsg(error.message);
+        setLoading(false);
+      } else {
+        alert("Account ဖွင့်တာ အောင်မြင်ပါတယ်။ Email ထဲမှာ Confirm လုပ်ပေးပါ အစ်ကို။");
+        window.location.href = '/login';
+      }
+    } catch (err) {
+      setErrorMsg('An unexpected error occurred');
       setLoading(false);
-    } else {
-      alert("Account ဖွင့်တာ အောင်မြင်ပါတယ်။ Email ထဲမှာ Confirm လုပ်ပေးပါ အစ်ကို။");
-      window.location.href = '/login';
     }
   };
 
@@ -77,7 +84,6 @@ export default function RegisterPage() {
                 className="w-full bg-white/[0.03] border border-white/5 rounded-[1.5rem] p-5 pl-14 outline-none focus:border-blue-600 focus:bg-white/[0.05] transition-all font-medium text-sm"
               />
             </div>
-
             {/* Email Field */}
             <div className="relative group">
               <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-500 transition-colors" size={18} />
@@ -90,7 +96,6 @@ export default function RegisterPage() {
                 className="w-full bg-white/[0.03] border border-white/5 rounded-[1.5rem] p-5 pl-14 outline-none focus:border-blue-600 focus:bg-white/[0.05] transition-all font-medium text-sm"
               />
             </div>
-
             {/* Password Field */}
             <div className="relative group">
               <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-500 transition-colors" size={18} />
@@ -121,7 +126,6 @@ export default function RegisterPage() {
                 Already have an account? Log In
             </a>
         </div>
-
       </main>
     </div>
   );
